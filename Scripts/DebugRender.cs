@@ -2,13 +2,24 @@ using Godot;
 using System;
 using System.Collections.Generic;
 
-public partial class DebugRender : MeshInstance3D
+public partial class DebugRender : MeshInstance3D, IDisposablePoolResource
 {
-	public int _PoolMax => 40;
+	public IDisposablePool Pool { get; set; }
 
 	List<Vector3> points = new List<Vector3>();
 	[Export]
 	private float width = 0.1F;
+
+	private static PackedScene prefab;
+	public static DebugRender Instantiate(IDisposablePool _pool)
+	{
+		if (prefab == null)
+			prefab = GD.Load<PackedScene>("res://Assets/Prefabs/debug_render.tscn");
+
+		var inst = prefab.Instantiate<DebugRender>();
+		inst.Pool = _pool;
+		return inst;
+	}
 	// Called when the node enters the scene tree for the first time.
 	public override void _Ready()
 	{
@@ -29,8 +40,6 @@ public partial class DebugRender : MeshInstance3D
 	{
 		return points.Contains(p);
 	}
-
-
 
 	// Called every frame. 'delta' is the elapsed time since the previous frame.
 	public override void _Process(double delta)
@@ -94,4 +103,12 @@ public partial class DebugRender : MeshInstance3D
 		m.SurfaceEnd();
 	}
 
+	public void Acquire()
+	{
+
+	}
+	public void Dispose()
+	{
+
+	}
 }

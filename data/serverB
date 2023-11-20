@@ -1,1 +1,1 @@
-{"Nodes":[{"ID":0,"Flags":0},{"ID":1,"Flags":0},{"ID":2,"Flags":0},{"ID":3,"Flags":0}],"Links":[{"NodeA":0,"NodeB":1,"Flags":0},{"NodeA":0,"NodeB":2,"Flags":0},{"NodeA":2,"NodeB":3,"Flags":0}]}
+{"Nodes":[{"ID":0,"pos":{"X":4.0,"Y":0.0,"Z":4.0},"Flags":0},{"ID":1,"pos":{"X":-4.0,"Y":0.0,"Z":4.0},"Flags":0},{"ID":2,"pos":{"X":4.0,"Y":0.0,"Z":-4.0},"Flags":0},{"ID":3,"pos":{"X":-4.0,"Y":0.0,"Z":-4.0},"Flags":0}],"Links":[{"NodeA":0,"NodeB":1,"Flags":0},{"NodeA":1,"NodeB":3,"Flags":0},{"NodeA":3,"NodeB":2,"Flags":0}]}

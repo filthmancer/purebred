@@ -29,7 +29,7 @@ func _ready():
 		if(!n.is_in_group("ServerNodes")):
 			continue;
 		node_instances.append(n)
-		n.initialise(null, self)
+		n.Initialise(n.position, self)
 	
 	if generated_links:
 		generate_links();
@@ -37,7 +37,7 @@ func _ready():
 		parse_links_from_nodes();
 	
 	if debug_render:
-		var link_prefab = load("res://debug_render.tscn")
+		var link_prefab = load("res://Assets/Prefabs/debug_render.tscn")
 		for l in link_list:
 			var a = node_instances[l[0]]
 			var b = node_instances[l[1]]
@@ -46,14 +46,14 @@ func _ready():
 			add_child(link);
 			link_instances.append([link,[a,b]]);
 		
-	#main_node.SaveServerLayout("serverB", self);
+	
 
 	
 func generate_nodes(num):
 	for n in num:
 		var node = node_scene.instantiate()
 		var node_spawn_location = Vector2(randf() * screen_size.x, randf()* screen_size.y)
-		node.initialise(node_spawn_location, self)
+		node.Initialise(node_spawn_location, self)
 		add_child(node)
 	
 
@@ -78,11 +78,17 @@ func parse_links_from_nodes():
 	
 
 
+var processed = false;
 # Called every frame. 'delta' is the elapsed time since the previous frame.
 func _process(_delta):
+	if !processed:
+		processed = true;
+		main_node.SaveServerLayout("serverA");
 	pass
 	
-func set_target_node(node):
+func set_target_node(node, active):
+	if !active: 
+		node = null;
 	highlighted_node = node;
 	for l in link_instances:
 		var color = Color(0.5,0.5,0.5);
