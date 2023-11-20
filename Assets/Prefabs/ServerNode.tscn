@@ -1,10 +1,13 @@
-[gd_scene load_steps=3 format=3 uid="uid://dummxnsurwjro"]
+[gd_scene load_steps=4 format=3 uid="uid://dummxnsurwjro"]
 
+[ext_resource type="Script" path="res://Scripts/ServerNode.cs" id="1_otohx"]
 [ext_resource type="Texture2D" uid="uid://3p60n2n84iaj" path="res://Assets/icon.png" id="2_t4ard"]
 
 [sub_resource type="BoxShape3D" id="BoxShape3D_qktrn"]
 
-[node name="Area3D" type="Area3D"]
+[node name="Area3D" type="Area3D" node_paths=PackedStringArray("linked_nodes")]
+script = ExtResource("1_otohx")
+linked_nodes = []
 
 [node name="Sprite3D" type="Sprite3D" parent="."]
 transform = Transform3D(1, 0, 0, 0, -4.37114e-08, -1, 0, 1, -4.37114e-08, 0, -0.228228, 0)

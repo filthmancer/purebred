@@ -4,7 +4,7 @@
 [ext_resource type="Script" path="res://Scripts/Main.cs" id="1_c6i6j"]
 [ext_resource type="Script" path="res://Scripts/Server.gd" id="2_odqj8"]
 [ext_resource type="Script" path="res://Scripts/ServerNode.gd" id="3_0du2u"]
-[ext_resource type="PackedScene" uid="uid://dummxnsurwjro" path="res://node.tscn" id="3_neytm"]
+[ext_resource type="PackedScene" uid="uid://dummxnsurwjro" path="res://Assets/Prefabs/ServerNode.tscn" id="3_neytm"]
 [ext_resource type="Texture2D" uid="uid://3p60n2n84iaj" path="res://Assets/icon.png" id="5_3kncv"]
 
 [sub_resource type="RectangleShape2D" id="RectangleShape2D_k2cd8"]
@@ -25,8 +25,9 @@ _bundled = {
 "version": 3
 }
 
-[node name="Main" type="Node3D"]
+[node name="Main" type="Node3D" node_paths=PackedStringArray("serverNode")]
 script = ExtResource("1_c6i6j")
+serverNode = NodePath("Server")
 
 [node name="Player" parent="." instance=ExtResource("1_6cjtf")]
 visible = false
@@ -38,25 +39,40 @@ main_node = NodePath("..")
 
 [node name="node" parent="Server" node_paths=PackedStringArray("linked_nodes") groups=["ServerNodes"] instance=ExtResource("3_neytm")]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 4, 0, 4)
-script = ExtResource("3_0du2u")
-linked_nodes = [NodePath("../node2"), NodePath("../node3")]
+linked_nodes = [NodePath("../node5")]
 
 [node name="node2" parent="Server" node_paths=PackedStringArray("linked_nodes") groups=["ServerNodes"] instance=ExtResource("3_neytm")]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -4, 0, 4)
-script = ExtResource("3_0du2u")
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0, -4)
 ID = 1
-linked_nodes = [NodePath("../node")]
+linked_nodes = [NodePath("../node4")]
 
 [node name="node3" parent="Server" node_paths=PackedStringArray("linked_nodes") groups=["ServerNodes"] instance=ExtResource("3_neytm")]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 4, 0, -4)
-script = ExtResource("3_0du2u")
 ID = 2
-linked_nodes = [NodePath("../node4")]
+linked_nodes = [NodePath("../node2")]
 
 [node name="node4" parent="Server" groups=["ServerNodes"] instance=ExtResource("3_neytm")]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -4, 0, -4)
-script = ExtResource("3_0du2u")
 ID = 3
+
+[node name="node5" parent="Server" node_paths=PackedStringArray("linked_nodes") groups=["ServerNodes"] instance=ExtResource("3_neytm")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 4, 0, 0)
+ID = 4
+linked_nodes = [NodePath("../node3")]
+
+[node name="node6" parent="Server" node_paths=PackedStringArray("linked_nodes") groups=["ServerNodes"] instance=ExtResource("3_neytm")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -4, 0, 0)
+ID = 5
+linked_nodes = [NodePath("../node4")]
+
+[node name="node7" parent="Server" node_paths=PackedStringArray("linked_nodes") groups=["ServerNodes"] instance=ExtResource("3_neytm")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0, 4)
+ID = 6
+linked_nodes = [NodePath("../node3")]
+
+[node name="node8" parent="Server" node_paths=PackedStringArray("linked_nodes") groups=["ServerNodes"] instance=ExtResource("3_neytm")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 2, 0, 2)
+ID = 7
+linked_nodes = [NodePath("../node"), NodePath("../node7")]
 
 [node name="Camera3D" type="Camera3D" parent="."]
 transform = Transform3D(-0.707107, 0.5, -0.5, -4.42575e-08, 0.707107, 0.707107, 0.707107, 0.5, -0.5, -5, 7, -5)
@@ -71,3 +87,11 @@ size = 10.0
 [connection signal="mouse_exited" from="Server/node3" to="Server/node3" method="_on_mouse_exited"]
 [connection signal="mouse_entered" from="Server/node4" to="Server/node4" method="_on_mouse_entered"]
 [connection signal="mouse_exited" from="Server/node4" to="Server/node4" method="_on_mouse_exited"]
+[connection signal="mouse_entered" from="Server/node5" to="Server/node5" method="_on_mouse_entered"]
+[connection signal="mouse_exited" from="Server/node5" to="Server/node5" method="_on_mouse_exited"]
+[connection signal="mouse_entered" from="Server/node6" to="Server/node6" method="_on_mouse_entered"]
+[connection signal="mouse_exited" from="Server/node6" to="Server/node6" method="_on_mouse_exited"]
+[connection signal="mouse_entered" from="Server/node7" to="Server/node7" method="_on_mouse_entered"]
+[connection signal="mouse_exited" from="Server/node7" to="Server/node7" method="_on_mouse_exited"]
+[connection signal="mouse_entered" from="Server/node8" to="Server/node8" method="_on_mouse_entered"]
+[connection signal="mouse_exited" from="Server/node8" to="Server/node8" method="_on_mouse_exited"]
