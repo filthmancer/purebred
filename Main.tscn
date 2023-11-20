@@ -1,0 +1,73 @@
+[gd_scene load_steps=10 format=3 uid="uid://wdyxgrma1k2v"]
+
+[ext_resource type="PackedScene" uid="uid://d4a8n7q424e01" path="res://Player.tscn" id="1_6cjtf"]
+[ext_resource type="Script" path="res://Scripts/Main.cs" id="1_c6i6j"]
+[ext_resource type="Script" path="res://Scripts/Server.gd" id="2_odqj8"]
+[ext_resource type="Script" path="res://Scripts/ServerNode.gd" id="3_0du2u"]
+[ext_resource type="PackedScene" uid="uid://dummxnsurwjro" path="res://node.tscn" id="3_neytm"]
+[ext_resource type="Texture2D" uid="uid://3p60n2n84iaj" path="res://Assets/icon.png" id="5_3kncv"]
+
+[sub_resource type="RectangleShape2D" id="RectangleShape2D_k2cd8"]
+size = Vector2(130, 130)
+
+[sub_resource type="BoxShape3D" id="BoxShape3D_emq86"]
+
+[sub_resource type="PackedScene" id="PackedScene_73lh5"]
+_bundled = {
+"conn_count": 2,
+"conns": PackedInt32Array(0, 0, 12, 11, 2, 0, 0, 0, 0, 14, 13, 2, 0, 0),
+"editable_instances": [],
+"names": PackedStringArray("Node", "script", "Area2D", "Image", "texture", "Sprite2D", "Collision", "shape", "CollisionShape2D", "Area3D", "CollisionShape3D", "_on_mouse_entered", "mouse_entered", "_on_mouse_exited", "mouse_exited"),
+"node_count": 5,
+"node_paths": [],
+"nodes": PackedInt32Array(-1, -1, 2, 0, -1, 1, 1, 0, 0, 0, 0, 5, 3, -1, 1, 4, 1, 0, 0, 0, 8, 6, -1, 1, 7, 2, 0, 0, 0, 9, 9, -1, 0, 0, 3, 0, 10, 10, -1, 1, 7, 3, 0),
+"variants": [ExtResource("3_0du2u"), ExtResource("5_3kncv"), SubResource("RectangleShape2D_k2cd8"), SubResource("BoxShape3D_emq86")],
+"version": 3
+}
+
+[node name="Main" type="Node3D"]
+script = ExtResource("1_c6i6j")
+
+[node name="Player" parent="." instance=ExtResource("1_6cjtf")]
+visible = false
+
+[node name="Server" type="Node" parent="." node_paths=PackedStringArray("main_node")]
+script = ExtResource("2_odqj8")
+node_scene = SubResource("PackedScene_73lh5")
+main_node = NodePath("..")
+
+[node name="node" parent="Server" node_paths=PackedStringArray("linked_nodes") groups=["ServerNodes"] instance=ExtResource("3_neytm")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 4, 0, 4)
+script = ExtResource("3_0du2u")
+linked_nodes = [NodePath("../node2"), NodePath("../node3")]
+
+[node name="node2" parent="Server" node_paths=PackedStringArray("linked_nodes") groups=["ServerNodes"] instance=ExtResource("3_neytm")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -4, 0, 4)
+script = ExtResource("3_0du2u")
+ID = 1
+linked_nodes = [NodePath("../node")]
+
+[node name="node3" parent="Server" node_paths=PackedStringArray("linked_nodes") groups=["ServerNodes"] instance=ExtResource("3_neytm")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 4, 0, -4)
+script = ExtResource("3_0du2u")
+ID = 2
+linked_nodes = [NodePath("../node4")]
+
+[node name="node4" parent="Server" groups=["ServerNodes"] instance=ExtResource("3_neytm")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -4, 0, -4)
+script = ExtResource("3_0du2u")
+ID = 3
+
+[node name="Camera3D" type="Camera3D" parent="."]
+transform = Transform3D(-0.707107, 0.5, -0.5, -4.42575e-08, 0.707107, 0.707107, 0.707107, 0.5, -0.5, -5, 7, -5)
+projection = 1
+size = 10.0
+
+[connection signal="mouse_entered" from="Server/node" to="Server/node" method="_on_mouse_entered"]
+[connection signal="mouse_exited" from="Server/node" to="Server/node" method="_on_mouse_exited"]
+[connection signal="mouse_entered" from="Server/node2" to="Server/node2" method="_on_mouse_entered"]
+[connection signal="mouse_exited" from="Server/node2" to="Server/node2" method="_on_mouse_exited"]
+[connection signal="mouse_entered" from="Server/node3" to="Server/node3" method="_on_mouse_entered"]
+[connection signal="mouse_exited" from="Server/node3" to="Server/node3" method="_on_mouse_exited"]
+[connection signal="mouse_entered" from="Server/node4" to="Server/node4" method="_on_mouse_entered"]
+[connection signal="mouse_exited" from="Server/node4" to="Server/node4" method="_on_mouse_exited"]
