@@ -24,6 +24,10 @@ window/size/viewport_height=800
 
 project/assembly_name="Purebred"
 
+[editor_plugins]
+
+enabled=PackedStringArray("res://addons/pluginloader/plugin.cfg")
+
 [input]
 
 move_right={
