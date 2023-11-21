@@ -1,6 +1,6 @@
 @tool
 extends EditorNode3DGizmoPlugin
-const ServerNode = preload("res://Scripts/ServerNode.cs")
+const ServerNode = preload("res://Scripts/Server/ServerNode.cs")
 
 func _get_gizmo_name():
 	return "EditorLine"

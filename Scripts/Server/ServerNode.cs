@@ -1,6 +1,5 @@
 using Godot;
 using System;
-
 public partial class ServerNode : Area3D, IDisposablePoolResource
 {
     public enum ServerNodeFlags { None }
@@ -11,14 +10,14 @@ public partial class ServerNode : Area3D, IDisposablePoolResource
     public Node[] linked_nodes;
     [Export]
     public ServerNodeFlags Flags;
-    private Node server;
+    private Server server;
 
 
     private static PackedScene prefab;
     public static ServerNode Instantiate(IDisposablePool _pool)
     {
         if (prefab == null)
-            prefab = GD.Load<PackedScene>("res://Assets/Prefabs/ServerNode.tscn");
+            prefab = GD.Load<PackedScene>("res://scenes/ServerNode.tscn");
 
         var inst = prefab.Instantiate<ServerNode>();
         inst.Pool = _pool;
@@ -58,19 +57,19 @@ public partial class ServerNode : Area3D, IDisposablePoolResource
         AddToGroup("ServerNodes", true);
     }
 
-    public void Initialise(Vector3 _pos, Node _server)
+    public void Initialise(Vector3? _pos, Server _server)
     {
-        Position = _pos;
+        Position = _pos ?? Position;
         server = _server;
     }
 
     public void _on_mouse_entered()
     {
-        server.Call("set_target_node", this, true);
+        server.SetTargetNode(this, true);
     }
 
     public void _on_mouse_exited()
     {
-        server.Call("set_target_node", this, false);
+        server.SetTargetNode(this, false);
     }
 }

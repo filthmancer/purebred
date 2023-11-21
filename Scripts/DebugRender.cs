@@ -14,7 +14,7 @@ public partial class DebugRender : MeshInstance3D, IDisposablePoolResource
 	public static DebugRender Instantiate(IDisposablePool _pool)
 	{
 		if (prefab == null)
-			prefab = GD.Load<PackedScene>("res://Assets/Prefabs/debug_render.tscn");
+			prefab = GD.Load<PackedScene>("res://scenes/debug_render.tscn");
 
 		var inst = prefab.Instantiate<DebugRender>();
 		inst.Pool = _pool;
