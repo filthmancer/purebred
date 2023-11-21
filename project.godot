@@ -11,7 +11,7 @@ config_version=5
 [application]
 
 config/name="Purebred"
-run/main_scene="res://Main.tscn"
+run/main_scene="res://scenes/Main.tscn"
 config/features=PackedStringArray("4.1", "C#")
 config/icon="res://Assets/icon.png"
 
@@ -26,7 +26,7 @@ project/assembly_name="Purebred"
 
 [editor_plugins]
 
-enabled=PackedStringArray("res://addons/pluginloader/plugin.cfg")
+enabled=PackedStringArray("res://addons/filextensions/plugin.cfg", "res://addons/pluginloader/plugin.cfg")
 
 [input]
 

@@ -2,7 +2,7 @@
     "version": "2.0.0",
     "configurations": [
         {
-            "name": "Launch",
+            "name": "Launch Main",
             "type": "coreclr",
             "request": "launch",
             "preLaunchTask": "build",
@@ -13,9 +13,30 @@
             "stopAtEntry": false
         },
         {
+            "name": "Launch Scene",
+            "type": "coreclr",
+            "request": "launch",
+            "preLaunchTask": "build",
+            "program": "/Applications/Godot_mono.app/Contents/MacOS/Godot",
+            "args": [
+                "scenes/${input:enterScene}.tscn"
+            ],
+            "cwd": "${workspaceFolder}",
+            "console": "internalConsole",
+            "stopAtEntry": false
+        },
+        {
             "name": "Attach",
             "type": "coreclr",
             "request": "attach"
+        }
+    ],
+    "inputs": [
+        {
+            "id": "enterScene",
+            "type": "promptString",
+            "description": "Scene to run",
+            "default": "main"
         }
     ]
 }
