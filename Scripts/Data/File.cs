@@ -141,8 +141,20 @@ public class File
         }
         fdi.value = _data;
 
-        string text = JsonConvert.SerializeObject(_data);
+        string text = JsonConvert.SerializeObject(_data, Formatting.Indented);
         await FileIO.WriteAllTextAsync(fdi.info.FullName, text);
+    }
+
+    public static bool SaveJsonImmediate(string _path, object _data)
+    {
+        if (!FileDataLoaded(_path, out FileData fdi))
+        {
+        }
+        fdi.value = _data;
+
+        string text = JsonConvert.SerializeObject(_data, Formatting.Indented);
+        FileIO.WriteAllText(fdi.info.FullName, text);
+        return true;
     }
 
     public static async Task SaveArray<T>(string _path, T[] _data)

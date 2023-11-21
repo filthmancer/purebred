@@ -14,7 +14,7 @@ public partial class Main : Node3D
     public static Pool<DebugRender> pool_debugLink = new Pool<DebugRender>(10, p => DebugRender.Instantiate(p), PoolLoadingMode.Eager);
     public override void _Ready()
     {
-        //LoadServerLayout("/serverA");
+        LoadServerLayout("serverA");
     }
 
     public override void _Process(double delta)
@@ -26,7 +26,7 @@ public partial class Main : Node3D
 
     public async Task LoadServerLayout(string path)
     {
-        var server = await File.LoadJson<ServerSerializedLayout>(path);
+        var server = await File.LoadJson<Server.ServerSerializedLayout>(path);
 
         for (int n = 0; n < server.Nodes.Length; n++)
         {
@@ -51,49 +51,37 @@ public partial class Main : Node3D
 
     public void SaveServerLayout(string path)
     {
-        List<NodeSerializedLayout> nodes = new List<NodeSerializedLayout>();
-        List<LinkSerializedLayout> links = new List<LinkSerializedLayout>();
-        foreach (var node in serverNode.Get("node_instances").AsGodotArray<Node>())
-        {
-            nodes.Add(new NodeSerializedLayout()
-            {
-                ID = node.Get("ID").AsInt16(),
-                pos = node.Get("position").AsVector3(),
-                Flags = 0
-            });
-        }
-        foreach (var link in serverNode.Get("link_list").AsGodotArray<int[]>())
-        {
-            links.Add(new LinkSerializedLayout()
-            {
-                NodeA = link[0],
-                NodeB = link[1],
-                Flags = 0
-            });
-        }
-        ServerSerializedLayout server = new ServerSerializedLayout()
-        {
-            Nodes = nodes.ToArray(),
-            Links = links.ToArray()
-        };
-        Task.Run(async () => await File.SaveJson(path, server));
+        SaveServerLayout(serverNode, path);
     }
 
-    public struct ServerSerializedLayout
+    public static void SaveServerLayout(Node _serverNode, string path)
     {
-        public NodeSerializedLayout[] Nodes;
-        public LinkSerializedLayout[] Links;
+        // List<NodeSerializedLayout> nodes = new List<NodeSerializedLayout>();
+        // List<LinkSerializedLayout> links = new List<LinkSerializedLayout>();
+        // foreach (var node in _serverNode.Get("node_instances").AsGodotArray<Node>())
+        // {
+        //     nodes.Add(new NodeSerializedLayout()
+        //     {
+        //         ID = node.Get("ID").AsInt16(),
+        //         pos = node.Get("position").AsVector3(),
+        //         Flags = 0
+        //     });
+        // }
+        // foreach (var link in _serverNode.Get("link_list").AsGodotArray<int[]>())
+        // {
+        //     links.Add(new LinkSerializedLayout()
+        //     {
+        //         NodeA = link[0],
+        //         NodeB = link[1],
+        //         Flags = 0
+        //     });
+        // }
+        // ServerSerializedLayout server = new ServerSerializedLayout()
+        // {
+        //     Nodes = nodes.ToArray(),
+        //     Links = links.ToArray()
+        // };
+        // Task.Run(async () => await File.SaveJson(path, server));
     }
 
-    public struct NodeSerializedLayout
-    {
-        public int ID;
-        public Vector3 pos;
-        public int Flags;
-    }
-    public struct LinkSerializedLayout
-    {
-        public int NodeA, NodeB;
-        public int Flags;
-    }
 }
