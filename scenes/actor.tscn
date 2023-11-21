@@ -1,0 +1,16 @@
+[gd_scene load_steps=4 format=3 uid="uid://ci4bi36wjr627"]
+
+[ext_resource type="Script" path="res://Scripts/Actors/Actor.gd" id="1_05br3"]
+[ext_resource type="Texture2D" uid="uid://4nq70cqwss5g" path="res://Assets/art/playerGrey_up1.png" id="2_35fqa"]
+
+[sub_resource type="BoxShape3D" id="BoxShape3D_fwf4n"]
+
+[node name="Actor" type="Area3D"]
+script = ExtResource("1_05br3")
+
+[node name="CollisionShape3D" type="CollisionShape3D" parent="."]
+shape = SubResource("BoxShape3D_fwf4n")
+
+[node name="Sprite3D" type="Sprite3D" parent="."]
+transform = Transform3D(1, 0, 0, 0, -4.37114e-08, -1, 0, 1, -4.37114e-08, 0, 0, 0)
+texture = ExtResource("2_35fqa")
