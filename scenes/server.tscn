@@ -4,3 +4,4 @@
 
 [node name="Server" type="Node"]
 script = ExtResource("1_yymp8")
+dataToLoad = "serverA"
