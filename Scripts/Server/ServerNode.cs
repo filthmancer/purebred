@@ -21,6 +21,7 @@ public partial class ServerNode : Area3D, IDisposablePoolResource
 
         var inst = prefab.Instantiate<ServerNode>();
         inst.Pool = _pool;
+        inst.Position = Vector3.Zero;
         return inst;
     }
 

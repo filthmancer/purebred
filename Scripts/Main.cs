@@ -14,7 +14,7 @@ public partial class Main : Node3D
     public static Pool<DebugRender> pool_debugLink = new Pool<DebugRender>(10, p => DebugRender.Instantiate(p), PoolLoadingMode.Eager);
     public override void _Ready()
     {
-        LoadServerLayout("serverA");
+        //LoadServerLayout("serverA");
     }
 
     public override void _Process(double delta)
@@ -24,30 +24,7 @@ public partial class Main : Node3D
 
     Dictionary<int, ServerNode> nodeInstances = new Dictionary<int, ServerNode>();
 
-    public async Task LoadServerLayout(string path)
-    {
-        var server = await File.LoadJson<Server.ServerSerializedLayout>(path);
 
-        for (int n = 0; n < server.Nodes.Length; n++)
-        {
-            var nodeInstance = pool_serverNode.Acquire();
-            nodeInstance.Position = server.Nodes[n].pos;
-            nodeInstance.ID = server.Nodes[n].ID;
-            nodeInstance.Flags = (ServerNode.ServerNodeFlags)server.Nodes[n].Flags;
-            nodeInstances[server.Nodes[n].ID] = nodeInstance;
-            serverNode.CallDeferred("add_child", nodeInstance);
-        }
-
-
-        for (int l = 0; l < server.Links.Length; l++)
-        {
-            var linkInstance = pool_debugLink.Acquire();
-            var nodeA = nodeInstances[server.Links[l].NodeA];
-            var nodeB = nodeInstances[server.Links[l].NodeB];
-            linkInstance.Initialise(new Vector3[2] { nodeA.Position, nodeB.Position });
-            serverNode.CallDeferred("add_child", linkInstance);
-        }
-    }
 
     public void SaveServerLayout(string path)
     {
