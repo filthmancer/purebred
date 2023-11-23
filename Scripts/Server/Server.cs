@@ -1,3 +1,4 @@
+
 using Godot;
 using System;
 using System.Collections.Generic;
@@ -9,16 +10,27 @@ public partial class Server : Node
 {
     [Export]
     public string dataToLoad;
+
+    private ServerData serverData;
+
+    public Main main;
+
+
     public Dictionary<int, ServerNode> nodeInstances = new Dictionary<int, ServerNode>();
     public Dictionary<DebugRender, ServerNode[]> linkInstances = new Dictionary<DebugRender, ServerNode[]>();
 
     public List<int[]> linkIDs = new List<int[]>();
 
     private ServerNode highlightedNode;
+
+    public System.Action<Server> OnGenerationComplete = null;
+    private AStar2D pathfinding;
     public override void _Ready()
     {
         if (dataToLoad != null && dataToLoad != "")
         {
+            nodeInstances = new Dictionary<int, ServerNode>();
+            linkInstances = new Dictionary<DebugRender, ServerNode[]>();
             LoadLayout(dataToLoad);
         }
     }
@@ -30,58 +42,151 @@ public partial class Server : Node
 
     public void UpdateVisuals()
     {
-        var linkPrefab = GD.Load<PackedScene>("res://scenes/debug_render.tscn");
-        foreach (int[] link in linkIDs)
+        for (int n = 0; n < serverData.Nodes.Length; n++)
         {
-            var a = nodeInstances[link[0]];
-            var b = nodeInstances[link[1]];
-
-            if (linkInstances.ContainsValue(new ServerNode[2] { a, b }))
+            if (nodeInstances.ContainsKey(serverData.Nodes[n].ID))
             {
                 continue;
             }
-            var linkInstance = linkPrefab.Instantiate<DebugRender>();
-            linkInstance.Initialise(new Vector3[2] { a.Position, b.Position });
-            linkInstances[linkInstance] = new ServerNode[] { a, b };
+
+            var nodeInstance = Main.pool_serverNode.Acquire();
+            nodeInstance.Position = serverData.Nodes[n].pos;
+            nodeInstance.ID = serverData.Nodes[n].ID;
+            nodeInstance.Flags = serverData.Nodes[n].Flags;
+            nodeInstances[serverData.Nodes[n].ID] = nodeInstance;
+
+            nodeInstance.Initialise(null, this);
+            AddChild(nodeInstance);
+        }
+
+        for (int l = 0; l < serverData.Links.Length; l++)
+        {
+            var nodeA = nodeInstances[serverData.Links[l].NodeA];
+            var nodeB = nodeInstances[serverData.Links[l].NodeB];
+
+            if (linkInstances.ContainsValue(new ServerNode[2] { nodeA, nodeB }))
+            {
+                continue;
+            }
+
+            var linkInstance = Main.pool_debugLink.Acquire();
+            linkInstance.Initialise(new Vector3[2] { nodeA.Position, nodeB.Position });
+            linkInstances[linkInstance] = new ServerNode[2] { nodeA, nodeB };
             AddChild(linkInstance);
         }
+
+        // var linkPrefab = GD.Load<PackedScene>("res://scenes/debug_render.tscn");
+        // foreach (int[] link in linkIDs)
+        // {
+        //     var a = nodeInstances[link[0]];
+        //     var b = nodeInstances[link[1]];
+
+        //     if (linkInstances.ContainsValue(new ServerNode[2] { a, b }))
+        //     {
+        //         continue;
+        //     }
+        //     var linkInstance = linkPrefab.Instantiate<DebugRender>();
+        //     linkInstance.Initialise(new Vector3[2] { a.Position, b.Position });
+        //     linkInstances[linkInstance] = new ServerNode[] { a, b };
+        //     AddChild(linkInstance);
+        // }
     }
 
-    public void RegenerateData()
+    public void rebuildDataFromChildren()
     {
-        rebuildNodes();
-        if (linkInstances.Count == 0)
+        serverData = new ServerData();
+        rebuildNodesFromChildren(ref serverData);
+        rebuildLinksFromChildren(ref serverData);
+
+        updatePathfinding();
+        UpdateVisuals();
+    }
+
+    private void updatePathfinding()
+    {
+        pathfinding = new AStar2D();
+        foreach (var node in serverData.Nodes)
         {
-            parseLinksFromNodes();
+            pathfinding.AddPoint(node.ID,
+                                new Vector2(node.pos.X, node.pos.Z),
+                                1);
+        }
+        foreach (var link in serverData.Links)
+        {
+            pathfinding.ConnectPoints(link.NodeA, link.NodeB);
         }
     }
 
-    private void rebuildNodes()
+    private void rebuildNodesFromChildren(ref ServerData data)
     {
         nodeInstances = new Dictionary<int, ServerNode>();
         foreach (var child in GetChildren())
         {
             if (child is not ServerNode)
                 continue;
+
             ServerNode node = child as ServerNode;
             nodeInstances[node.ID] = node;
-            (node).Initialise(null, this);
+            node.Initialise(null, this);
+        }
+        data.Nodes = new NodeData[nodeInstances.Count];
+        for (int i = 0; i < nodeInstances.Count; i++)
+        {
+            data.Nodes[i] = new NodeData()
+            {
+                ID = nodeInstances[i].ID,
+                pos = nodeInstances[i].Position,
+                Flags = nodeInstances[i].Flags
+            };
         }
         GD.Print("Rebuilding server nodes, node instances: " + nodeInstances.Count);
     }
-
-    private void parseLinksFromNodes()
+    private void rebuildLinksFromChildren(ref ServerData data)
     {
-        linkIDs = new List<int[]>();
+        linkInstances = new Dictionary<DebugRender, ServerNode[]>();
+        var linkDataFromChildren = new List<int[]>();
+
+        foreach (var child in GetChildren())
+        {
+            if (child is not DebugRender)
+                continue;
+
+            DebugRender link = child as DebugRender;
+            ServerNode a = nodeInstances.First(kvp => kvp.Value.Position == link.Points[0]).Value;
+            ServerNode b = nodeInstances.First(kvp => kvp.Value.Position == link.Points[1]).Value;
+
+            if (a != null && b != null)
+            {
+                linkInstances[link] = new ServerNode[2] { a, b };
+                var l = new int[2] { a.ID, b.ID };
+                if (!linkDataFromChildren.Contains(l))
+                    linkDataFromChildren.Add(l);
+            }
+        }
+
         foreach (var a in nodeInstances)
         {
             foreach (Node b in a.Value.linked_nodes)
             {
                 if (b == null) continue;
-                linkIDs.Add(new int[2] { a.Key, b.Get("ID").AsInt32() });
+                var l = new int[2] { a.Key, b.Get("ID").AsInt32() };
+                if (!linkDataFromChildren.Contains(l))
+                    linkDataFromChildren.Add(l);
             }
         }
-        GD.Print("Parsing server links, link instances: " + linkIDs.Count);
+
+        /// TODO: UPDATE linkDataFromChildren TO BE LINK DATA INSTANCES, SO WE CAN SEND FLAGS
+        data.Links = new LinkData[linkDataFromChildren.Count];
+        for (int i = 0; i < linkDataFromChildren.Count; i++)
+        {
+            data.Links[i] = new LinkData()
+            {
+                NodeA = linkDataFromChildren[i][0],
+                NodeB = linkDataFromChildren[i][1],
+                Flags = 0
+            };
+        }
+
     }
 
     public void SetTargetNode(ServerNode node, bool active)
@@ -96,18 +201,31 @@ public partial class Server : Node
                 color = new Color(1, 0, 0);
             link.Key.SetColor(color);
         }
+
+        main.EmitGodotSignal(nameof(Main.HighlightUpdated), highlightedNode);
+    }
+    #region Pathfinding
+    public ServerNode[] GetPathFromTo(ServerNode a, ServerNode b)
+    {
+        var path = pathfinding.GetIdPath(a.ID, b.ID);
+        List<ServerNode> pathAsNodes = new List<ServerNode>();
+        foreach (var point in path)
+        {
+            pathAsNodes.Add(nodeInstances[(int)point]);
+        }
+        return pathAsNodes.ToArray();
     }
 
+    #endregion
+    #region Data
     public void SaveLayout()
     {
-        var path = "serverC";
-
-        List<Server.NodeSerializedLayout> nodes = new List<Server.NodeSerializedLayout>();
-        List<Server.LinkSerializedLayout> links = new List<Server.LinkSerializedLayout>();
+        List<NodeData> nodes = new List<NodeData>();
+        List<LinkData> links = new List<LinkData>();
 
         foreach (var node in nodeInstances)
         {
-            nodes.Add(new Server.NodeSerializedLayout()
+            nodes.Add(new NodeData()
             {
                 ID = node.Key,
                 pos = node.Value.Position,
@@ -116,72 +234,56 @@ public partial class Server : Node
         }
         foreach (var link in linkIDs)
         {
-            links.Add(new Server.LinkSerializedLayout()
+            links.Add(new LinkData()
             {
                 NodeA = link[0],
                 NodeB = link[1],
                 Flags = 0
             });
         }
-        Server.ServerSerializedLayout server = new Server.ServerSerializedLayout()
+        ServerData server = new ServerData()
         {
             Nodes = nodes.ToArray(),
             Links = links.ToArray()
         };
-        File.SaveJsonImmediate(path, server);
+        serverData = server;
+        File.SaveJsonImmediate(dataToLoad, server);
     }
 
     public async Task LoadLayout(string path)
     {
-        var server = await File.LoadJson<Server.ServerSerializedLayout>(path);
+        var server = await File.LoadJson<Server.ServerData>(path);
+        serverData = server;
 
-        nodeInstances = new Dictionary<int, ServerNode>();
-        for (int n = 0; n < server.Nodes.Length; n++)
-        {
-            var nodeInstance = Main.pool_serverNode.Acquire();
-            nodeInstance.Position = server.Nodes[n].pos;
-            nodeInstance.ID = server.Nodes[n].ID;
-            nodeInstance.Flags = (ServerNode.ServerNodeFlags)server.Nodes[n].Flags;
-            nodeInstances[server.Nodes[n].ID] = nodeInstance;
+        updatePathfinding();
 
-            nodeInstance.Initialise(null, this);
-            //CallDeferred("add_child", nodeInstance);
-            AddChild(nodeInstance);
-        }
-
-        linkIDs = new List<int[]>();
-        linkInstances = new Dictionary<DebugRender, ServerNode[]>();
-        for (int l = 0; l < server.Links.Length; l++)
-        {
-            var linkInstance = Main.pool_debugLink.Acquire();
-            var nodeA = nodeInstances[server.Links[l].NodeA];
-            var nodeB = nodeInstances[server.Links[l].NodeB];
-            linkIDs.Add(new int[2] { nodeA.ID, nodeB.ID });
-            linkInstances[linkInstance] = new ServerNode[2] { nodeA, nodeB };
-
-            linkInstance.Initialise(new Vector3[2] { nodeA.Position, nodeB.Position });
-            //CallDeferred("add_child", linkInstance);
-            AddChild(linkInstance);
-        }
-
-        // RegenerateData();
         UpdateVisuals();
-    }
-    public struct ServerSerializedLayout
-    {
-        public NodeSerializedLayout[] Nodes;
-        public LinkSerializedLayout[] Links;
+        OnGenerationComplete(this);
     }
 
-    public struct NodeSerializedLayout
+    public enum NodeFlags { None }
+    public enum LinkFlags { None }
+
+    public struct ServerData
+    {
+        public NodeData[] Nodes;
+        public LinkData[] Links;
+        public NodeData GetNodeData(int ID)
+        {
+            return Nodes.First(n => n.ID == ID);
+        }
+    }
+
+    public struct NodeData
     {
         public int ID;
         public Vector3 pos;
-        public int Flags;
+        public NodeFlags Flags;
     }
-    public struct LinkSerializedLayout
+    public struct LinkData
     {
         public int NodeA, NodeB;
-        public int Flags;
+        public LinkFlags Flags;
     }
+    #endregion
 }

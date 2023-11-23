@@ -7,6 +7,7 @@ public partial class DebugRender : MeshInstance3D, IDisposablePoolResource
 	public IDisposablePool Pool { get; set; }
 
 	List<Vector3> points = new List<Vector3>();
+	public List<Vector3> Points => points;
 	[Export]
 	private float width = 0.1F;
 

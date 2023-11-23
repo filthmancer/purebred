@@ -2,16 +2,14 @@ using Godot;
 using System;
 public partial class ServerNode : Area3D, IDisposablePoolResource
 {
-    public enum ServerNodeFlags { None }
     public IDisposablePool Pool { get; set; }
     [Export]
     public int ID;
     [Export]
     public Node[] linked_nodes;
     [Export]
-    public ServerNodeFlags Flags;
+    public Server.NodeFlags Flags;
     private Server server;
-
 
     private static PackedScene prefab;
     public static ServerNode Instantiate(IDisposablePool _pool)

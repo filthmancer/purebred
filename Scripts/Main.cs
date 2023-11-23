@@ -8,57 +8,48 @@ using System.Threading;
 public partial class Main : Node3D
 {
     [Export]
-    public Node serverNode;
+    public Server server;
+    private Node3D actorInstance;
+
+    [Signal]
+    public delegate void HighlightUpdatedEventHandler(Node node);
 
     public static Pool<ServerNode> pool_serverNode = new Pool<ServerNode>(10, p => ServerNode.Instantiate(p), PoolLoadingMode.Eager);
     public static Pool<DebugRender> pool_debugLink = new Pool<DebugRender>(10, p => DebugRender.Instantiate(p), PoolLoadingMode.Eager);
     public override void _Ready()
     {
-        //LoadServerLayout("serverA");
+        server.main = this;
+        server.OnGenerationComplete += SetupActor;
     }
 
     public override void _Process(double delta)
     {
 
     }
-
-    Dictionary<int, ServerNode> nodeInstances = new Dictionary<int, ServerNode>();
-
-
-
-    public void SaveServerLayout(string path)
+    private void SetupActor(Server s)
     {
-        SaveServerLayout(serverNode, path);
+        var actorPrefab = GD.Load<PackedScene>(AssetPaths.Actor);
+        actorInstance = actorPrefab.Instantiate<Node3D>();
+        actorInstance.Position = s.nodeInstances[0].Position;
+        AddChild(actorInstance);
+        actorInstance.Call("initialise", server, server.nodeInstances[0]);
     }
 
-    public static void SaveServerLayout(Node _serverNode, string path)
+    public bool EmitGodotSignal(string name, params Godot.Variant[] args)
     {
-        // List<NodeSerializedLayout> nodes = new List<NodeSerializedLayout>();
-        // List<LinkSerializedLayout> links = new List<LinkSerializedLayout>();
-        // foreach (var node in _serverNode.Get("node_instances").AsGodotArray<Node>())
-        // {
-        //     nodes.Add(new NodeSerializedLayout()
-        //     {
-        //         ID = node.Get("ID").AsInt16(),
-        //         pos = node.Get("position").AsVector3(),
-        //         Flags = 0
-        //     });
-        // }
-        // foreach (var link in _serverNode.Get("link_list").AsGodotArray<int[]>())
-        // {
-        //     links.Add(new LinkSerializedLayout()
-        //     {
-        //         NodeA = link[0],
-        //         NodeB = link[1],
-        //         Flags = 0
-        //     });
-        // }
-        // ServerSerializedLayout server = new ServerSerializedLayout()
-        // {
-        //     Nodes = nodes.ToArray(),
-        //     Links = links.ToArray()
-        // };
-        // Task.Run(async () => await File.SaveJson(path, server));
+        if (!HasSignal(name))
+            return false;
+        EmitSignal(name, args);
+        return true;
     }
+}
 
+public static class AssetPaths
+{
+    public const string Actor = "res://scenes/actor.tscn";
+}
+
+public static class Signals
+{
+    public const string HighlightUpdated = "highlight_updated";
 }
