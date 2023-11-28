@@ -20,6 +20,7 @@ public partial class Main : Node3D
 
     public static Pool<ServerNode> pool_serverNode = new Pool<ServerNode>(10, p => ServerNode.Instantiate(p), PoolLoadingMode.Eager);
     public static Pool<DebugRender> pool_debugLink = new Pool<DebugRender>(10, p => DebugRender.Instantiate(p), PoolLoadingMode.Eager);
+    public static Pool<LinkInstance> pool_linkInstance = new Pool<LinkInstance>(10, p => LinkInstance.Instantiate(p), PoolLoadingMode.Eager);
     public override void _Ready()
     {
         server.main = this;

@@ -2,7 +2,7 @@ using Godot;
 using System;
 using System.Collections.Generic;
 
-public partial class DebugRender : InteractableArea3D, IDisposablePoolResource, IDescribableNode
+public partial class DebugRender : InteractableArea3D, IDisposablePoolResource
 {
 	private MeshInstance3D _meshInstance;
 	public MeshInstance3D meshInstance
@@ -19,6 +19,7 @@ public partial class DebugRender : InteractableArea3D, IDisposablePoolResource, 
 	}
 
 	public IDisposablePool Pool { get; set; }
+	public Server.LinkType LinkType = Server.LinkType.Standard;
 
 	public string Description()
 	{
@@ -28,7 +29,7 @@ public partial class DebugRender : InteractableArea3D, IDisposablePoolResource, 
 
 	public string Name()
 	{
-		return "Link";
+		return LinkType.ToString() + " Link";
 	}
 
 	List<Vector3> points = new List<Vector3>();
@@ -78,12 +79,12 @@ public partial class DebugRender : InteractableArea3D, IDisposablePoolResource, 
 		mat.AlbedoColor = col;
 	}
 
-	private void AddPoint(Vector3 point)
+	public void AddPoint(Vector3 point)
 	{
 		points.Add(point);
 	}
 
-	private void RegenerateLine()
+	public void RegenerateLine()
 	{
 		meshInstance.Mesh = new ImmediateMesh();
 		ImmediateMesh m = meshInstance.Mesh as ImmediateMesh;

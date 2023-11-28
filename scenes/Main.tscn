@@ -23,16 +23,21 @@ transform = Transform3D(1, -5.96046e-08, -2.98023e-08, 2.98023e-08, 1, 0, -2.980
 render_priority = -50
 texture = ExtResource("2_jpf3h")
 
-[node name="UI" type="Node2D" parent="."]
-position = Vector2(0, 1080)
+[node name="UI" type="Control" parent="."]
+layout_mode = 3
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
 script = ExtResource("4_4tntm")
 
 [node name="description_box" type="NinePatchRect" parent="UI"]
-anchors_preset = 2
+layout_mode = 2
 anchor_top = 1.0
 anchor_bottom = 1.0
-offset_top = -128.0
-offset_right = 512.0
+offset_top = -91.0
+offset_right = 324.0
 grow_vertical = 0
 texture = ExtResource("4_n7fug")
 region_rect = Rect2(0, 0, 190, 49)
@@ -41,30 +46,56 @@ patch_margin_top = 8
 patch_margin_right = 8
 patch_margin_bottom = 8
 
-[node name="name_text" type="RichTextLabel" parent="UI/description_box"]
-layout_mode = 1
-anchors_preset = 2
-anchor_top = 1.0
-anchor_bottom = 1.0
-offset_left = 5.0
-offset_top = -119.0
-offset_right = 504.0
-offset_bottom = -92.0
-grow_vertical = 0
-theme_override_colors/default_color = Color(0.278431, 0.278431, 0.278431, 1)
-theme_override_font_sizes/normal_font_size = 20
-text = "NODE"
-
 [node name="description_text" type="RichTextLabel" parent="UI/description_box"]
 layout_mode = 1
-anchors_preset = 2
-anchor_top = 1.0
+anchors_preset = -1
+anchor_top = 0.312
+anchor_right = 1.0
 anchor_bottom = 1.0
 offset_left = 5.0
-offset_top = -88.0
-offset_right = 504.0
+offset_top = 0.0639992
+offset_right = -5.0
 offset_bottom = -9.0
+grow_horizontal = 2
 grow_vertical = 0
 theme_override_colors/default_color = Color(0.278431, 0.278431, 0.278431, 1)
 theme_override_font_sizes/normal_font_size = 20
 text = "Standard, Burning"
+
+[node name="name_text" type="RichTextLabel" parent="UI"]
+clip_contents = false
+layout_mode = 2
+anchor_top = 0.836
+anchor_bottom = 0.836
+offset_left = 11.0
+offset_top = 45.12
+offset_right = 72.0
+offset_bottom = 73.12
+grow_vertical = 0
+pivot_offset = Vector2(-6, 0)
+theme_override_colors/default_color = Color(0.278431, 0.278431, 0.278431, 1)
+theme_override_font_sizes/normal_font_size = 20
+text = "NODE"
+fit_content = true
+scroll_active = false
+autowrap_mode = 0
+shortcut_keys_enabled = false
+
+[node name="NinePatchRect" type="NinePatchRect" parent="UI/name_text"]
+show_behind_parent = true
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+offset_left = -8.0
+offset_top = -1.0
+offset_right = 7.0
+offset_bottom = 5.0
+grow_horizontal = 2
+grow_vertical = 2
+texture = ExtResource("4_n7fug")
+region_rect = Rect2(0, 143, 190, 49)
+patch_margin_left = 5
+patch_margin_top = 5
+patch_margin_right = 5
+patch_margin_bottom = 5

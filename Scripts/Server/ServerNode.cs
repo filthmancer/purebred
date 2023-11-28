@@ -14,17 +14,23 @@ public partial class ServerNode : InteractableArea3D, IDisposablePoolResource, I
 
     public string Description()
     {
-        string desc = "";
+        string desc = NodeType.ToString() + "\n";
         foreach (var flag in System.Enum.GetValues(typeof(Server.NodeFlags)))
         {
+            if ((Server.NodeFlags)flag == Server.NodeFlags.None) continue;
             if (Flags == (Server.NodeFlags)flag) desc += flag.ToString() + ", ";
         }
         return desc;
     }
 
+    public static string[] NodeNames = new string[24] {"Alpha", "Beta", "Gamma", "Delta", "Epsilon", "Zeta", "Eta", "Theta",
+                                        "Iota", "Kappa", "Lambda", "Mu", "Nu", "Xi", "Omicron", "Pi", "Rho", "Sigma",
+                                        "Tau", "Upsilon", "Phi", "Chi", "Psi", "Omega"};
+
     public string Name()
     {
-        return NodeType.ToString() + " Node";
+        if (NodeNames.Length - 1 > ID) return NodeNames[ID];
+        return "Node";
     }
 
     [Export]

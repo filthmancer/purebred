@@ -1,4 +1,4 @@
-extends Node2D
+extends Control
 
 const ServerNode = preload("res://Scripts/Server/ServerNode.cs");
 const IDescribable = preload("res://Scripts/InteractableArea3D.cs")
@@ -16,6 +16,7 @@ func _process(delta):
 func update_highlight_description(node):
 	if node == null:
 		$description_box/description_text.text = "";
+		$name_text.set_text("");
 	else:
 		var description = str(node);
 		var name = str(node);
@@ -25,5 +26,5 @@ func update_highlight_description(node):
 			name = node.call("Name");
 			
 		$description_box/description_text.set_text(description);
-		$description_box/name_text.set_text(name);
+		$name_text.set_text(name);
 	pass

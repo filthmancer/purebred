@@ -14,7 +14,7 @@ public partial class Server : Node
     public Main main;
 
     public Dictionary<int, ServerNode> nodeInstances = new Dictionary<int, ServerNode>();
-    public Dictionary<DebugRender, ServerNode[]> linkInstances = new Dictionary<DebugRender, ServerNode[]>();
+    public Dictionary<LinkInstance, ServerNode[]> linkInstances = new Dictionary<LinkInstance, ServerNode[]>();
 
     private InteractableArea3D highlightedArea;
 
@@ -40,8 +40,6 @@ public partial class Server : Node
                 nodeInstances[serverData.Nodes[n].ID] = Main.pool_serverNode.Acquire();
                 AddChild(nodeInstances[serverData.Nodes[n].ID]);
             }
-
-
             var nodeInstance = nodeInstances[serverData.Nodes[n].ID];
             nodeInstance.Position = serverData.Nodes[n].pos;
             nodeInstance.ID = serverData.Nodes[n].ID;
@@ -58,31 +56,25 @@ public partial class Server : Node
             var nodeA = nodeInstances[serverData.Links[l].NodeA];
             var nodeB = nodeInstances[serverData.Links[l].NodeB];
 
-            Visuals_LinkBetween(nodeA, nodeB);
+            var link = Visuals_LinkBetween(nodeA, nodeB);
+            link.Flags = serverData.Links[l].Flags;
         }
     }
 
-    private void Visuals_LinkBetween(ServerNode nodeA, ServerNode nodeB)
+    private LinkInstance Visuals_LinkBetween(ServerNode nodeA, ServerNode nodeB)
     {
         if (linkInstances.ContainsValue(new ServerNode[2] { nodeA, nodeB }))
         {
-            return;
+            return null;
         }
         var offset = (nodeB.Position - nodeA.Position).Normalized();
-        var linkInstance = Main.pool_debugLink.Acquire();
-        linkInstance.Initialise(new Vector3[2] {
-            nodeA.Position,
-            nodeB.Position
-            });
-        var collision = linkInstance.GetNode<CollisionShape3D>("collision");
-        if (collision != null)
-        {
-            collision.MakeConvexFromSiblings();
-            linkInstance.Connect("mouse_entered", Callable.From(() => SetTargetNode(linkInstance, true)));
-            linkInstance.Connect("mouse_exited", Callable.From(() => SetTargetNode(linkInstance, false)));
-        }
+        var linkInstance = Main.pool_linkInstance.Acquire();
+        linkInstance.Initialise(new ServerNode[2] { nodeA, nodeB });
+        linkInstance.render.Connect("mouse_entered", Callable.From(() => SetTargetNode(linkInstance, true)));
+        linkInstance.render.Connect("mouse_exited", Callable.From(() => SetTargetNode(linkInstance, false)));
         linkInstances[linkInstance] = new ServerNode[2] { nodeA, nodeB };
         AddChild(linkInstance);
+        return linkInstance;
     }
 
     public void RebuildDataFromChildren()
@@ -121,15 +113,15 @@ public partial class Server : Node
     }
     private void RebuildLinksFromChildren(ref ServerData data)
     {
-        linkInstances = new Dictionary<DebugRender, ServerNode[]>();
+        linkInstances = new Dictionary<LinkInstance, ServerNode[]>();
         var linkDataFromChildren = new List<int[]>();
 
         foreach (var child in GetChildren())
         {
-            if (child is not DebugRender)
+            if (child is not LinkInstance)
                 continue;
 
-            DebugRender link = child as DebugRender;
+            LinkInstance link = child as LinkInstance;
             ServerNode a = nodeInstances.First(kvp => kvp.Value.Position == link.Points[0]).Value;
             ServerNode b = nodeInstances.First(kvp => kvp.Value.Position == link.Points[1]).Value;
 
@@ -251,7 +243,7 @@ public partial class Server : Node
     public async Task LoadLayout(string path)
     {
         nodeInstances = new Dictionary<int, ServerNode>();
-        linkInstances = new Dictionary<DebugRender, ServerNode[]>();
+        linkInstances = new Dictionary<LinkInstance, ServerNode[]>();
 
         var server = await File.LoadJson<Server.ServerData>(path);
         serverData = server;
@@ -263,11 +255,13 @@ public partial class Server : Node
         main.EmitGodotSignal(nameof(Main.ServerGenerationComplete), this);
     }
 
-    [System.Flags]
+    [Flags]
     public enum NodeFlags { None = 0, Burning = 1 }
-    public enum LinkFlags { None }
+    [Flags]
+    public enum LinkFlags { None = 0, Firewall = 1 }
 
     public enum NodeType { Standard, }
+    public enum LinkType { Standard, Fast, Slow }
 
     public struct ServerData
     {

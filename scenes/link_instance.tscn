@@ -1,0 +1,10 @@
+[gd_scene load_steps=3 format=3 uid="uid://chh74m4rdkrr"]
+
+[ext_resource type="Script" path="res://Scripts/Server/LinkInstance.cs" id="1_ecn7e"]
+[ext_resource type="PackedScene" uid="uid://b3v4qc1c7bq2p" path="res://scenes/debug_render.tscn" id="2_6eyii"]
+
+[node name="link_instance" type="Area3D" node_paths=PackedStringArray("render")]
+script = ExtResource("1_ecn7e")
+render = NodePath("debug_render")
+
+[node name="debug_render" parent="." instance=ExtResource("2_6eyii")]
