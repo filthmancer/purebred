@@ -13,13 +13,20 @@ public partial class Main : Node3D
 
     [Signal]
     public delegate void HighlightUpdatedEventHandler(Node node);
+    [Signal]
+    public delegate void HighlightSelectedEventHandler(Node node);
+    [Signal]
+    public delegate void ServerGenerationCompleteEventHandler(Server server);
 
     public static Pool<ServerNode> pool_serverNode = new Pool<ServerNode>(10, p => ServerNode.Instantiate(p), PoolLoadingMode.Eager);
     public static Pool<DebugRender> pool_debugLink = new Pool<DebugRender>(10, p => DebugRender.Instantiate(p), PoolLoadingMode.Eager);
     public override void _Ready()
     {
         server.main = this;
-        server.OnGenerationComplete += SetupActor;
+        ServerGenerationComplete += SetupActor;
+        server.LoadLayout("serverD");
+        // server.RebuildDataFromChildren();
+        // server.SaveLayout("serverD");
     }
 
     public override void _Process(double delta)
@@ -47,9 +54,4 @@ public partial class Main : Node3D
 public static class AssetPaths
 {
     public const string Actor = "res://scenes/actor.tscn";
-}
-
-public static class Signals
-{
-    public const string HighlightUpdated = "highlight_updated";
 }

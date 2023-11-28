@@ -2,9 +2,34 @@ using Godot;
 using System;
 using System.Collections.Generic;
 
-public partial class DebugRender : MeshInstance3D, IDisposablePoolResource
+public partial class DebugRender : InteractableArea3D, IDisposablePoolResource, IDescribableNode
 {
+	private MeshInstance3D _meshInstance;
+	public MeshInstance3D meshInstance
+	{
+		get
+		{
+			if (_meshInstance == null)
+			{
+				_meshInstance = GetNode<MeshInstance3D>("mesh");
+			}
+
+			return _meshInstance;
+		}
+	}
+
 	public IDisposablePool Pool { get; set; }
+
+	public string Description()
+	{
+		string desc = $"Links {0} and {1}";
+		return desc;
+	}
+
+	public string Name()
+	{
+		return "Link";
+	}
 
 	List<Vector3> points = new List<Vector3>();
 	public List<Vector3> Points => points;
@@ -47,9 +72,9 @@ public partial class DebugRender : MeshInstance3D, IDisposablePoolResource
 	{
 	}
 
-	public void SetColor(Color col)
+	public override void SetColor(Color col)
 	{
-		var mat = (StandardMaterial3D)GetActiveMaterial(0);
+		var mat = (StandardMaterial3D)meshInstance.GetActiveMaterial(0);
 		mat.AlbedoColor = col;
 	}
 
@@ -60,8 +85,8 @@ public partial class DebugRender : MeshInstance3D, IDisposablePoolResource
 
 	private void RegenerateLine()
 	{
-		Mesh = new ImmediateMesh();
-		ImmediateMesh m = Mesh as ImmediateMesh;
+		meshInstance.Mesh = new ImmediateMesh();
+		ImmediateMesh m = meshInstance.Mesh as ImmediateMesh;
 		m.SurfaceBegin(Mesh.PrimitiveType.TriangleStrip);
 		for (int i = 1; i < points.Count; i++)
 		{
@@ -111,5 +136,11 @@ public partial class DebugRender : MeshInstance3D, IDisposablePoolResource
 	public void Dispose()
 	{
 
+	}
+
+	public override void SetAsTarget(bool active)
+	{
+		Color col = active ? new Color(1.0F, 0.5F, 0.5F) : new Color(1F, 1F, 1F);
+		SetColor(col);
 	}
 }

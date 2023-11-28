@@ -1,6 +1,7 @@
 using Godot;
 using System;
-public partial class ServerNode : Area3D, IDisposablePoolResource
+using System.Linq;
+public partial class ServerNode : InteractableArea3D, IDisposablePoolResource, IDescribableNode
 {
     public IDisposablePool Pool { get; set; }
     [Export]
@@ -9,6 +10,25 @@ public partial class ServerNode : Area3D, IDisposablePoolResource
     public Node[] linked_nodes;
     [Export]
     public Server.NodeFlags Flags;
+    public Server.NodeType NodeType = Server.NodeType.Standard;
+
+    public string Description()
+    {
+        string desc = "";
+        foreach (var flag in System.Enum.GetValues(typeof(Server.NodeFlags)))
+        {
+            if (Flags == (Server.NodeFlags)flag) desc += flag.ToString() + ", ";
+        }
+        return desc;
+    }
+
+    public string Name()
+    {
+        return NodeType.ToString() + " Node";
+    }
+
+    [Export]
+    public float Radius = 0.5F;
     private Server server;
 
     private static PackedScene prefab;
@@ -29,7 +49,7 @@ public partial class ServerNode : Area3D, IDisposablePoolResource
     }
     public void Acquire()
     {
-        GD.Print("Acquired ServerNode: " + this.Name);
+
     }
     public void Dispose()
     {
@@ -62,13 +82,23 @@ public partial class ServerNode : Area3D, IDisposablePoolResource
         server = _server;
     }
 
-    public void _on_mouse_entered()
+    public override void SetColor(Color col)
     {
-        server.SetTargetNode(this, true);
+        GetNode<SpriteBase3D>("Sprite").Modulate = col;
     }
 
-    public void _on_mouse_exited()
+    public override void SetAsTarget(bool active)
     {
-        server.SetTargetNode(this, false);
+        Color col = active ? new Color(1.0F, 0.5F, 0.5F) : new Color(1.0F, 1.0F, 1.0F);
+        SetColor(col);
+        if (active)
+        {
+            foreach (var link in server.linkInstances)
+            {
+                if (link.Value[0] == this || link.Value[1] == this)
+                    link.Key.SetColor(col);
+            }
+        }
+
     }
 }

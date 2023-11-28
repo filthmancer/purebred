@@ -8,55 +8,49 @@ using System.Threading.Tasks;
 
 public partial class Server : Node
 {
-    [Export]
-    public string dataToLoad;
 
     private ServerData serverData;
 
     public Main main;
 
-
     public Dictionary<int, ServerNode> nodeInstances = new Dictionary<int, ServerNode>();
     public Dictionary<DebugRender, ServerNode[]> linkInstances = new Dictionary<DebugRender, ServerNode[]>();
 
-    public List<int[]> linkIDs = new List<int[]>();
+    private InteractableArea3D highlightedArea;
 
-    private ServerNode highlightedNode;
-
-    public System.Action<Server> OnGenerationComplete = null;
     private AStar2D pathfinding;
     public override void _Ready()
     {
-        if (dataToLoad != null && dataToLoad != "")
-        {
-            nodeInstances = new Dictionary<int, ServerNode>();
-            linkInstances = new Dictionary<DebugRender, ServerNode[]>();
-            LoadLayout(dataToLoad);
-        }
     }
 
     public override void _Process(double delta)
     {
-
+        if (Input.IsActionJustPressed("select") && highlightedArea != null)
+        {
+            main.EmitGodotSignal(nameof(Main.HighlightSelected), highlightedArea);
+        }
     }
 
-    public void UpdateVisuals()
+    public void Visuals_Update()
     {
         for (int n = 0; n < serverData.Nodes.Length; n++)
         {
-            if (nodeInstances.ContainsKey(serverData.Nodes[n].ID))
+            if (!nodeInstances.ContainsKey(serverData.Nodes[n].ID))
             {
-                continue;
+                nodeInstances[serverData.Nodes[n].ID] = Main.pool_serverNode.Acquire();
+                AddChild(nodeInstances[serverData.Nodes[n].ID]);
             }
 
-            var nodeInstance = Main.pool_serverNode.Acquire();
+
+            var nodeInstance = nodeInstances[serverData.Nodes[n].ID];
             nodeInstance.Position = serverData.Nodes[n].pos;
             nodeInstance.ID = serverData.Nodes[n].ID;
             nodeInstance.Flags = serverData.Nodes[n].Flags;
-            nodeInstances[serverData.Nodes[n].ID] = nodeInstance;
 
             nodeInstance.Initialise(null, this);
-            AddChild(nodeInstance);
+            nodeInstance.Connect("mouse_entered", Callable.From(() => SetTargetNode(nodeInstance, true)));
+            nodeInstance.Connect("mouse_exited", Callable.From(() => SetTargetNode(nodeInstance, false)));
+
         }
 
         for (int l = 0; l < serverData.Links.Length; l++)
@@ -64,60 +58,44 @@ public partial class Server : Node
             var nodeA = nodeInstances[serverData.Links[l].NodeA];
             var nodeB = nodeInstances[serverData.Links[l].NodeB];
 
-            if (linkInstances.ContainsValue(new ServerNode[2] { nodeA, nodeB }))
-            {
-                continue;
-            }
-
-            var linkInstance = Main.pool_debugLink.Acquire();
-            linkInstance.Initialise(new Vector3[2] { nodeA.Position, nodeB.Position });
-            linkInstances[linkInstance] = new ServerNode[2] { nodeA, nodeB };
-            AddChild(linkInstance);
+            Visuals_LinkBetween(nodeA, nodeB);
         }
-
-        // var linkPrefab = GD.Load<PackedScene>("res://scenes/debug_render.tscn");
-        // foreach (int[] link in linkIDs)
-        // {
-        //     var a = nodeInstances[link[0]];
-        //     var b = nodeInstances[link[1]];
-
-        //     if (linkInstances.ContainsValue(new ServerNode[2] { a, b }))
-        //     {
-        //         continue;
-        //     }
-        //     var linkInstance = linkPrefab.Instantiate<DebugRender>();
-        //     linkInstance.Initialise(new Vector3[2] { a.Position, b.Position });
-        //     linkInstances[linkInstance] = new ServerNode[] { a, b };
-        //     AddChild(linkInstance);
-        // }
     }
 
-    public void rebuildDataFromChildren()
+    private void Visuals_LinkBetween(ServerNode nodeA, ServerNode nodeB)
+    {
+        if (linkInstances.ContainsValue(new ServerNode[2] { nodeA, nodeB }))
+        {
+            return;
+        }
+        var offset = (nodeB.Position - nodeA.Position).Normalized();
+        var linkInstance = Main.pool_debugLink.Acquire();
+        linkInstance.Initialise(new Vector3[2] {
+            nodeA.Position,
+            nodeB.Position
+            });
+        var collision = linkInstance.GetNode<CollisionShape3D>("collision");
+        if (collision != null)
+        {
+            collision.MakeConvexFromSiblings();
+            linkInstance.Connect("mouse_entered", Callable.From(() => SetTargetNode(linkInstance, true)));
+            linkInstance.Connect("mouse_exited", Callable.From(() => SetTargetNode(linkInstance, false)));
+        }
+        linkInstances[linkInstance] = new ServerNode[2] { nodeA, nodeB };
+        AddChild(linkInstance);
+    }
+
+    public void RebuildDataFromChildren()
     {
         serverData = new ServerData();
-        rebuildNodesFromChildren(ref serverData);
-        rebuildLinksFromChildren(ref serverData);
+        RebuildNodesFromChildren(ref serverData);
+        RebuildLinksFromChildren(ref serverData);
 
-        updatePathfinding();
-        UpdateVisuals();
+        UpdatePathfinding();
+        Visuals_Update();
+        main.EmitGodotSignal(nameof(Main.ServerGenerationComplete), this);
     }
-
-    private void updatePathfinding()
-    {
-        pathfinding = new AStar2D();
-        foreach (var node in serverData.Nodes)
-        {
-            pathfinding.AddPoint(node.ID,
-                                new Vector2(node.pos.X, node.pos.Z),
-                                1);
-        }
-        foreach (var link in serverData.Links)
-        {
-            pathfinding.ConnectPoints(link.NodeA, link.NodeB);
-        }
-    }
-
-    private void rebuildNodesFromChildren(ref ServerData data)
+    private void RebuildNodesFromChildren(ref ServerData data)
     {
         nodeInstances = new Dictionary<int, ServerNode>();
         foreach (var child in GetChildren())
@@ -141,7 +119,7 @@ public partial class Server : Node
         }
         GD.Print("Rebuilding server nodes, node instances: " + nodeInstances.Count);
     }
-    private void rebuildLinksFromChildren(ref ServerData data)
+    private void RebuildLinksFromChildren(ref ServerData data)
     {
         linkInstances = new Dictionary<DebugRender, ServerNode[]>();
         var linkDataFromChildren = new List<int[]>();
@@ -189,22 +167,42 @@ public partial class Server : Node
 
     }
 
-    public void SetTargetNode(ServerNode node, bool active)
+    public void SetTargetNode(InteractableArea3D target, bool active)
     {
-        if (!active)
-            node = null;
-        highlightedNode = node;
         foreach (var link in linkInstances)
         {
-            var color = new Color(0.5F, 0.5F, 0.5F);
-            if (highlightedNode != null && link.Value.Contains(highlightedNode))
-                color = new Color(1, 0, 0);
-            link.Key.SetColor(color);
+            link.Key.SetColor(new Color(1.0F, 1.0F, 1.0F));
         }
 
-        main.EmitGodotSignal(nameof(Main.HighlightUpdated), highlightedNode);
+        if (!active)
+        {
+            target = null;
+        }
+
+        if (target != highlightedArea && highlightedArea != null)
+            highlightedArea.SetAsTarget(false);
+
+        highlightedArea = target;
+        if (highlightedArea != null) highlightedArea.SetAsTarget(true);
+
+        main.EmitGodotSignal(nameof(Main.HighlightUpdated), highlightedArea);
     }
     #region Pathfinding
+    private void UpdatePathfinding()
+    {
+        pathfinding = new AStar2D();
+        foreach (var node in serverData.Nodes)
+        {
+            pathfinding.AddPoint(node.ID,
+                                new Vector2(node.pos.X, node.pos.Z),
+                                1);
+        }
+        foreach (var link in serverData.Links)
+        {
+            pathfinding.ConnectPoints(link.NodeA, link.NodeB);
+        }
+    }
+
     public ServerNode[] GetPathFromTo(ServerNode a, ServerNode b)
     {
         var path = pathfinding.GetIdPath(a.ID, b.ID);
@@ -218,7 +216,7 @@ public partial class Server : Node
 
     #endregion
     #region Data
-    public void SaveLayout()
+    public void SaveLayout(string path)
     {
         List<NodeData> nodes = new List<NodeData>();
         List<LinkData> links = new List<LinkData>();
@@ -232,12 +230,12 @@ public partial class Server : Node
                 Flags = 0
             });
         }
-        foreach (var link in linkIDs)
+        foreach (var link in linkInstances)
         {
             links.Add(new LinkData()
             {
-                NodeA = link[0],
-                NodeB = link[1],
+                NodeA = link.Value[0].ID,
+                NodeB = link.Value[1].ID,
                 Flags = 0
             });
         }
@@ -247,22 +245,29 @@ public partial class Server : Node
             Links = links.ToArray()
         };
         serverData = server;
-        File.SaveJsonImmediate(dataToLoad, server);
+        File.SaveJsonImmediate(path, server);
     }
 
     public async Task LoadLayout(string path)
     {
+        nodeInstances = new Dictionary<int, ServerNode>();
+        linkInstances = new Dictionary<DebugRender, ServerNode[]>();
+
         var server = await File.LoadJson<Server.ServerData>(path);
         serverData = server;
 
-        updatePathfinding();
+        UpdatePathfinding();
 
-        UpdateVisuals();
-        OnGenerationComplete(this);
+        Visuals_Update();
+
+        main.EmitGodotSignal(nameof(Main.ServerGenerationComplete), this);
     }
 
-    public enum NodeFlags { None }
+    [System.Flags]
+    public enum NodeFlags { None = 0, Burning = 1 }
     public enum LinkFlags { None }
+
+    public enum NodeType { Standard, }
 
     public struct ServerData
     {
