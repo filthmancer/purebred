@@ -1,7 +1,7 @@
 [gd_scene load_steps=4 format=3 uid="uid://ci4bi36wjr627"]
 
 [ext_resource type="Script" path="res://Scripts/Actors/Actor.gd" id="1_05br3"]
-[ext_resource type="Texture2D" uid="uid://4nq70cqwss5g" path="res://Assets/art/playerGrey_up1.png" id="2_35fqa"]
+[ext_resource type="Texture2D" uid="uid://4nq70cqwss5g" path="res://Assets/art/virus/playerGrey_up1.png" id="2_eqq3u"]
 
 [sub_resource type="BoxShape3D" id="BoxShape3D_fwf4n"]
 
@@ -14,4 +14,5 @@ disabled = true
 
 [node name="Sprite3D" type="Sprite3D" parent="."]
 transform = Transform3D(0.380407, 0.204223, 0.252158, -6.46342e-09, 0.388551, -0.314687, -0.324485, 0.239419, 0.295615, 0, 0.0891647, 0)
-texture = ExtResource("2_35fqa")
+render_priority = 100
+texture = ExtResource("2_eqq3u")

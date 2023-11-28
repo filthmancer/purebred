@@ -1,7 +1,10 @@
-[gd_scene load_steps=3 format=3 uid="uid://wdyxgrma1k2v"]
+[gd_scene load_steps=6 format=3 uid="uid://wdyxgrma1k2v"]
 
 [ext_resource type="Script" path="res://Scripts/Main.cs" id="1_c6i6j"]
+[ext_resource type="Texture2D" uid="uid://dn4rnaq24un4e" path="res://Assets/art/wenrexa/СommonElement/Background.jpg" id="2_jpf3h"]
 [ext_resource type="Script" path="res://Scripts/Server/Server.cs" id="3_h7l4b"]
+[ext_resource type="Script" path="res://Scripts/UIControl.gd" id="4_4tntm"]
+[ext_resource type="Texture2D" uid="uid://bunylms2v7nwa" path="res://Assets/art/kenney/blueSheet.png" id="4_n7fug"]
 
 [node name="Main" type="Node3D" node_paths=PackedStringArray("server")]
 script = ExtResource("1_c6i6j")
@@ -9,9 +12,59 @@ server = NodePath("Server")
 
 [node name="Server" type="Node" parent="."]
 script = ExtResource("3_h7l4b")
-dataToLoad = "serverA"
 
 [node name="Camera3D" type="Camera3D" parent="."]
 transform = Transform3D(-0.707107, 0.5, -0.5, -4.42575e-08, 0.707107, 0.707107, 0.707107, 0.5, -0.5, -5, 7, -5)
 projection = 1
 size = 10.0
+
+[node name="Sprite3D" type="Sprite3D" parent="Camera3D"]
+transform = Transform3D(1, -5.96046e-08, -2.98023e-08, 2.98023e-08, 1, 0, -2.98023e-08, -1.19209e-07, 1, 2.14577e-06, -2.6226e-06, -47)
+render_priority = -50
+texture = ExtResource("2_jpf3h")
+
+[node name="UI" type="Node2D" parent="."]
+position = Vector2(0, 1080)
+script = ExtResource("4_4tntm")
+
+[node name="description_box" type="NinePatchRect" parent="UI"]
+anchors_preset = 2
+anchor_top = 1.0
+anchor_bottom = 1.0
+offset_top = -128.0
+offset_right = 512.0
+grow_vertical = 0
+texture = ExtResource("4_n7fug")
+region_rect = Rect2(0, 0, 190, 49)
+patch_margin_left = 8
+patch_margin_top = 8
+patch_margin_right = 8
+patch_margin_bottom = 8
+
+[node name="name_text" type="RichTextLabel" parent="UI/description_box"]
+layout_mode = 1
+anchors_preset = 2
+anchor_top = 1.0
+anchor_bottom = 1.0
+offset_left = 5.0
+offset_top = -119.0
+offset_right = 504.0
+offset_bottom = -92.0
+grow_vertical = 0
+theme_override_colors/default_color = Color(0.278431, 0.278431, 0.278431, 1)
+theme_override_font_sizes/normal_font_size = 20
+text = "NODE"
+
+[node name="description_text" type="RichTextLabel" parent="UI/description_box"]
+layout_mode = 1
+anchors_preset = 2
+anchor_top = 1.0
+anchor_bottom = 1.0
+offset_left = 5.0
+offset_top = -88.0
+offset_right = 504.0
+offset_bottom = -9.0
+grow_vertical = 0
+theme_override_colors/default_color = Color(0.278431, 0.278431, 0.278431, 1)
+theme_override_font_sizes/normal_font_size = 20
+text = "Standard, Burning"
