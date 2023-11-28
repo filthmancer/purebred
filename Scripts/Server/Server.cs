@@ -8,7 +8,6 @@ using System.Threading.Tasks;
 
 public partial class Server : Node
 {
-
     private ServerData serverData;
 
     public Main main;
@@ -16,7 +15,12 @@ public partial class Server : Node
     public Dictionary<int, ServerNode> nodeInstances = new Dictionary<int, ServerNode>();
     public Dictionary<LinkInstance, ServerNode[]> linkInstances = new Dictionary<LinkInstance, ServerNode[]>();
 
+    public float Heat = 0.0F;
+    public float TickRate = 1.0F;
+
     private InteractableArea3D highlightedArea;
+
+    public ServerNode targetedNode { get; private set; }
 
     private AStar2D pathfinding;
     public override void _Ready()
@@ -25,9 +29,19 @@ public partial class Server : Node
 
     public override void _Process(double delta)
     {
-        if (Input.IsActionJustPressed("select") && highlightedArea != null)
+        if (Input.IsActionJustPressed("select"))
         {
-            main.EmitGodotSignal(nameof(Main.HighlightSelected), highlightedArea);
+            if (highlightedArea != null)
+            {
+                main.EmitGodotSignal(nameof(Main.HighlightSelected), highlightedArea);
+                if (highlightedArea is ServerNode)
+                    targetedNode = highlightedArea as ServerNode;
+            }
+            else
+            {
+                // main.EmitGodotSignal(nameof(Main.HighlightSelected));
+            }
+
         }
     }
 
@@ -75,6 +89,23 @@ public partial class Server : Node
         linkInstances[linkInstance] = new ServerNode[2] { nodeA, nodeB };
         AddChild(linkInstance);
         return linkInstance;
+    }
+
+    /// <summary>
+    /// Returns target component if it is in the main library
+    /// </summary>
+    /// <param name="id"></param>
+    /// <returns></returns>
+    public ServerComponent Visuals_GenerateComponent(string id)
+    {
+        if (Main.serverComponents.ContainsKey(id))
+        {
+            var comp = Main.serverComponents[id].Instantiate<ServerComponent>();
+            // comp.Connect("mouse_entered", Callable.From(() => SetTargetNode(comp, true)));
+            // comp.Connect("mouse_exited", Callable.From(() => SetTargetNode(comp, false)));
+            return comp;
+        }
+        return null;
     }
 
     public void RebuildDataFromChildren()
@@ -179,6 +210,7 @@ public partial class Server : Node
 
         main.EmitGodotSignal(nameof(Main.HighlightUpdated), highlightedArea);
     }
+
     #region Pathfinding
     private void UpdatePathfinding()
     {

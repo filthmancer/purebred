@@ -1,10 +1,13 @@
-[gd_scene load_steps=6 format=3 uid="uid://wdyxgrma1k2v"]
+[gd_scene load_steps=9 format=3 uid="uid://wdyxgrma1k2v"]
 
 [ext_resource type="Script" path="res://Scripts/Main.cs" id="1_c6i6j"]
 [ext_resource type="Texture2D" uid="uid://dn4rnaq24un4e" path="res://Assets/art/wenrexa/СommonElement/Background.jpg" id="2_jpf3h"]
 [ext_resource type="Script" path="res://Scripts/Server/Server.cs" id="3_h7l4b"]
 [ext_resource type="Script" path="res://Scripts/UIControl.gd" id="4_4tntm"]
 [ext_resource type="Texture2D" uid="uid://bunylms2v7nwa" path="res://Assets/art/kenney/blueSheet.png" id="4_n7fug"]
+[ext_resource type="Texture2D" uid="uid://dwr26dwdfofnr" path="res://Assets/art/kenney/greenSheet.png" id="6_rpcls"]
+[ext_resource type="Texture2D" uid="uid://bqurulm27qpd0" path="res://Assets/art/virus/enemyWalking_1.png" id="7_t1f7f"]
+[ext_resource type="Texture2D" uid="uid://dfarrthnaj3pt" path="res://Assets/art/wenrexa/СommonElement/Icon05.png" id="8_uabhg"]
 
 [node name="Main" type="Node3D" node_paths=PackedStringArray("server")]
 script = ExtResource("1_c6i6j")
@@ -49,11 +52,10 @@ patch_margin_bottom = 8
 [node name="description_text" type="RichTextLabel" parent="UI/description_box"]
 layout_mode = 1
 anchors_preset = -1
-anchor_top = 0.312
 anchor_right = 1.0
 anchor_bottom = 1.0
 offset_left = 5.0
-offset_top = 0.0639992
+offset_top = 6.0
 offset_right = -5.0
 offset_bottom = -9.0
 grow_horizontal = 2
@@ -99,3 +101,103 @@ patch_margin_left = 5
 patch_margin_top = 5
 patch_margin_right = 5
 patch_margin_bottom = 5
+
+[node name="ToolButtonA" type="Button" parent="UI"]
+visible = false
+layout_mode = 1
+anchors_preset = 7
+anchor_left = 0.5
+anchor_top = 1.0
+anchor_right = 0.5
+anchor_bottom = 1.0
+offset_left = -133.0
+offset_top = -77.0
+offset_right = -71.0
+offset_bottom = -9.0
+grow_horizontal = 2
+grow_vertical = 0
+
+[node name="NinePatchRect" type="NinePatchRect" parent="UI/ToolButtonA"]
+layout_mode = 1
+anchors_preset = 7
+anchor_left = 0.5
+anchor_top = 1.0
+anchor_right = 0.5
+anchor_bottom = 1.0
+offset_left = -30.0
+offset_top = -68.0
+offset_right = 31.0
+offset_bottom = -1.0
+grow_horizontal = 2
+grow_vertical = 0
+texture = ExtResource("6_rpcls")
+region_rect = Rect2(190, 195, 49, 48)
+patch_margin_left = 6
+patch_margin_top = 5
+patch_margin_right = 5
+patch_margin_bottom = 9
+
+[node name="TextureRect" type="TextureRect" parent="UI/ToolButtonA"]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+offset_left = 7.0
+offset_top = 5.0
+offset_right = -6.0
+offset_bottom = -11.0
+grow_horizontal = 2
+grow_vertical = 2
+texture = ExtResource("7_t1f7f")
+expand_mode = 1
+stretch_mode = 5
+
+[node name="ToolButtonB" type="Button" parent="UI"]
+visible = false
+layout_mode = 1
+anchors_preset = 7
+anchor_left = 0.5
+anchor_top = 1.0
+anchor_right = 0.5
+anchor_bottom = 1.0
+offset_left = -59.0
+offset_top = -77.0
+offset_right = 3.0
+offset_bottom = -9.0
+grow_horizontal = 2
+grow_vertical = 0
+
+[node name="NinePatchRect" type="NinePatchRect" parent="UI/ToolButtonB"]
+layout_mode = 1
+anchors_preset = 7
+anchor_left = 0.5
+anchor_top = 1.0
+anchor_right = 0.5
+anchor_bottom = 1.0
+offset_left = -30.0
+offset_top = -68.0
+offset_right = 31.0
+offset_bottom = -1.0
+grow_horizontal = 2
+grow_vertical = 0
+texture = ExtResource("6_rpcls")
+region_rect = Rect2(190, 195, 49, 48)
+patch_margin_left = 6
+patch_margin_top = 5
+patch_margin_right = 5
+patch_margin_bottom = 9
+
+[node name="TextureRect2" type="TextureRect" parent="UI/ToolButtonB"]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+offset_left = 7.0
+offset_top = 5.0
+offset_right = -6.0
+offset_bottom = -11.0
+grow_horizontal = 2
+grow_vertical = 2
+texture = ExtResource("8_uabhg")
+expand_mode = 1
+stretch_mode = 5

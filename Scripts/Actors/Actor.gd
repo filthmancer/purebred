@@ -10,7 +10,7 @@ const ServerNode = preload("res://Scripts/Server/ServerNode.cs");
 func _ready():
 	target_pos = position;
 	var main = get_node("/root/Main");
-	main.connect("HighlightSelected", check_highlight);
+	main.connect("MoveActors", check_highlight);
 	pass # Replace with function body.
 
 
@@ -26,7 +26,8 @@ func initialise(_server, node_target):
 	node_current = node_target;
 	position = node_current.position;
 
-func check_highlight(node_target):
+func check_highlight(node_target = null, id = null):
+	print(id);
 	if node_target != null && node_target.get_script() == ServerNode&& node_target != node_current:
 		move_to_node(node_target)
 

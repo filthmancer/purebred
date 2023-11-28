@@ -1,6 +1,6 @@
 using Godot;
 using System;
-using System.Linq;
+using System.Collections.Generic;
 public partial class ServerNode : InteractableArea3D, IDisposablePoolResource, IDescribableNode
 {
     public IDisposablePool Pool { get; set; }
@@ -10,15 +10,25 @@ public partial class ServerNode : InteractableArea3D, IDisposablePoolResource, I
     public Node[] linked_nodes;
     [Export]
     public Server.NodeFlags Flags;
+
     public Server.NodeType NodeType = Server.NodeType.Standard;
+
+    public int ComponentMax = 1;
+    public List<ServerComponent> components = new List<ServerComponent>();
+
 
     public string Description()
     {
         string desc = NodeType.ToString() + "\n";
-        foreach (var flag in System.Enum.GetValues(typeof(Server.NodeFlags)))
+        // foreach (var flag in System.Enum.GetValues(typeof(Server.NodeFlags)))
+        // {
+        //     if ((Server.NodeFlags)flag == Server.NodeFlags.None) continue;
+        //     if (Flags == (Server.NodeFlags)flag) desc += flag.ToString() + ", ";
+        // }
+
+        foreach (var component in components)
         {
-            if ((Server.NodeFlags)flag == Server.NodeFlags.None) continue;
-            if (Flags == (Server.NodeFlags)flag) desc += flag.ToString() + ", ";
+            desc += component.Name() + ", ";
         }
         return desc;
     }
@@ -105,6 +115,25 @@ public partial class ServerNode : InteractableArea3D, IDisposablePoolResource, I
                     link.Key.SetColor(col);
             }
         }
+    }
 
+    public bool BuildComponent(string id)
+    {
+        // Already have too many components on this node
+        if (components.Count >= ComponentMax)
+            return false;
+
+        var component = server.Visuals_GenerateComponent(id);
+        if (component == null)
+        {
+            GD.PushError($"SERVERNODE.BUILDCOMPONENT: {id} was not found in component dictionary");
+            return false;
+        }
+        component.Position = Vector3.Zero;
+        component.nodeInstance = this;
+
+        AddChild(component);
+        components.Add(component);
+        return true;
     }
 }
