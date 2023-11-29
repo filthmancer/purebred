@@ -29,7 +29,7 @@ func initialise(_server, node_target):
 
 func move_to_node(target= null):
 	if target != null && target.get_script() == ServerNode&& target != node_current:
-		path = server.GetPathFromTo(node_current, target);
+		path = server.GetPathFromTo(node_current, target, ["avoid_cages"]);
 
 
 func move_to_next_path_point(delta):

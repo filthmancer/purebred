@@ -8,10 +8,10 @@ var server;
 func _ready():
 	server = get_node("/root/Main/Server")
 	var main = get_node("/root/Main");
-	main.connect("HighlightUpdated", update_highlight_description);
+	main.connect("InteractableOver", update_highlight_description);
 	main.connect("HighlightSelected", select_highlight);
-	$ToolButtonA.connect("button_up", component_button_press)
-	$ToolButtonB.connect("button_up", move_button_press);
+	$ToolButtonA.connect("button_down", component_button_press)
+	$ToolButtonB.connect("button_down", move_button_press);
 	pass # Replace with function body.
 
 
@@ -20,7 +20,8 @@ func _process(delta):
 	pass
 	
 func component_button_press():
-	server.interactable_selected.BuildComponent("servercomponent");
+	if server.interactable_selected != null :
+		server.interactable_selected.BuildComponent("cage");
 	
 func move_button_press():
 	get_node("/root/Main").emit_signal("MoveActors", server.interactable_selected);

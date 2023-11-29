@@ -9,9 +9,10 @@
 [ext_resource type="Texture2D" uid="uid://bqurulm27qpd0" path="res://Assets/art/virus/enemyWalking_1.png" id="7_t1f7f"]
 [ext_resource type="Texture2D" uid="uid://dfarrthnaj3pt" path="res://Assets/art/wenrexa/СommonElement/Icon05.png" id="8_uabhg"]
 
-[node name="Main" type="Node3D" node_paths=PackedStringArray("server")]
+[node name="Main" type="Node3D" node_paths=PackedStringArray("server", "mainCamera")]
 script = ExtResource("1_c6i6j")
 server = NodePath("Server")
+mainCamera = NodePath("Camera3D")
 
 [node name="Server" type="Node" parent="."]
 script = ExtResource("3_h7l4b")
@@ -33,6 +34,7 @@ anchor_right = 1.0
 anchor_bottom = 1.0
 grow_horizontal = 2
 grow_vertical = 2
+mouse_filter = 1
 script = ExtResource("4_4tntm")
 
 [node name="description_box" type="NinePatchRect" parent="UI"]
@@ -116,6 +118,7 @@ offset_right = -71.0
 offset_bottom = -9.0
 grow_horizontal = 2
 grow_vertical = 0
+action_mode = 0
 
 [node name="NinePatchRect" type="NinePatchRect" parent="UI/ToolButtonA"]
 layout_mode = 1
@@ -166,6 +169,7 @@ offset_right = 3.0
 offset_bottom = -9.0
 grow_horizontal = 2
 grow_vertical = 0
+action_mode = 0
 
 [node name="NinePatchRect" type="NinePatchRect" parent="UI/ToolButtonB"]
 layout_mode = 1

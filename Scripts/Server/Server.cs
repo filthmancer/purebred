@@ -28,23 +28,57 @@ public partial class Server : Node
 
     public override void _Process(double delta)
     {
-        if (Input.IsActionJustPressed("select"))
+        // if (Input.IsActionJustPressed("select"))
+        // {
+
+
+        // }
+    }
+    public override void _UnhandledInput(InputEvent @event)
+    {
+        if (@event.IsActionReleased("select"))
         {
+            if (main.GetMouseRaycastTarget(out Node target))
+            {
+                // If we click again on the selected object, deselect it
+                if (target == interactable_selected)
+                {
+                    interactable_highlighted = interactable_selected;
+
+                    main.EmitGodotSignal(nameof(Main.HighlightDeselected), interactable_selected);
+                    interactable_selected = null;
+
+                    main.EmitGodotSignal(nameof(Main.InteractableOver), interactable_highlighted);
+                    return;
+                }
+            }
+
+            if (interactable_highlighted == interactable_selected)
+                return;
+
+            //If we have highlighted an interactable that isn't currently selected
             if (interactable_highlighted != null)
             {
+                //Send a signal to the old selected obj
                 if (interactable_selected != null)
                 {
                     main.EmitGodotSignal(nameof(Main.HighlightDeselected), interactable_selected);
                 }
                 interactable_selected = interactable_highlighted;
+
                 main.EmitGodotSignal(nameof(Main.HighlightSelected), interactable_selected);
             }
             else
             {
-                // main.EmitGodotSignal(nameof(Main.HighlightDeselected), highlightedArea);
+                main.EmitGodotSignal(nameof(Main.HighlightDeselected), interactable_selected);
+                interactable_selected = null;
             }
-
         }
+    }
+
+    public bool IsSelected(InteractableArea3D target)
+    {
+        return target == interactable_selected;
     }
 
     public void Visuals_Update()
@@ -87,7 +121,7 @@ public partial class Server : Node
         }
         var offset = (nodeB.Position - nodeA.Position).Normalized();
         var linkInstance = Main.pool_linkInstance.Acquire();
-        linkInstance.Initialise(new ServerNode[2] { nodeA, nodeB });
+        linkInstance.Initialise(this, new ServerNode[2] { nodeA, nodeB });
         linkInstance.render.Connect("mouse_entered", Callable.From(() => SetTargetNode(linkInstance, true)));
         linkInstance.render.Connect("mouse_exited", Callable.From(() => SetTargetNode(linkInstance, false)));
         linkInstances[linkInstance] = new ServerNode[2] { nodeA, nodeB };
@@ -202,12 +236,17 @@ public partial class Server : Node
             target = null;
         }
 
+        if (target == null)
+            main.EmitGodotSignal(nameof(Main.InteractableExit), interactable_highlighted);
+
         interactable_highlighted = target;
-        // if (highlightedArea != null) highlightedArea.SetAsTarget(true);
-
-        main.EmitGodotSignal(nameof(Main.HighlightUpdated), interactable_highlighted);
+        if (interactable_highlighted != null)
+            main.EmitGodotSignal(nameof(Main.InteractableOver), interactable_highlighted);
     }
-
+    public ServerNode GetRandomNode()
+    {
+        return nodeInstances[main.rng.RandiRange(0, nodeInstances.Count)];
+    }
     #region Pathfinding
     private void UpdatePathfinding()
     {
@@ -224,8 +263,34 @@ public partial class Server : Node
         }
     }
 
-    public ServerNode[] GetPathFromTo(ServerNode a, ServerNode b)
+    private Dictionary<string, System.Func<ServerNode, float, float>> ruleFunctions = new Dictionary<string, Func<ServerNode, float, float>>()
     {
+        {"avoid_cages", AvoidCages }
+    };
+
+    public static float AvoidCages(ServerNode node, float weightIn)
+    {
+        if (node.components.Find(c => c is Cage) != null)
+        {
+            return weightIn + 100;
+        }
+        return weightIn;
+    }
+
+    public ServerNode[] GetPathFromTo(ServerNode a, ServerNode b, params string[] rules)
+    {
+        foreach (var node in pathfinding.GetPointIds())
+        {
+            float weightIn = pathfinding.GetPointWeightScale(node);
+            foreach (string rule in rules)
+            {
+                if (ruleFunctions.ContainsKey(rule))
+                {
+                    weightIn = ruleFunctions[rule](nodeInstances[(int)node], weightIn);
+                }
+            }
+            pathfinding.SetPointWeightScale(node, weightIn);
+        }
         var path = pathfinding.GetIdPath(a.ID, b.ID);
         List<ServerNode> pathAsNodes = new List<ServerNode>();
         foreach (var point in path)

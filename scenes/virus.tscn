@@ -1,0 +1,19 @@
+[gd_scene load_steps=4 format=3 uid="uid://bi401f4i7huj7"]
+
+[ext_resource type="Script" path="res://Scripts/Actors/Virus.gd" id="1_lesgv"]
+[ext_resource type="Texture2D" uid="uid://4nq70cqwss5g" path="res://Assets/art/virus/playerGrey_up1.png" id="2_hrula"]
+
+[sub_resource type="BoxShape3D" id="BoxShape3D_fwf4n"]
+
+[node name="virus" type="Area3D"]
+script = ExtResource("1_lesgv")
+
+[node name="CollisionShape3D" type="CollisionShape3D" parent="."]
+shape = SubResource("BoxShape3D_fwf4n")
+disabled = true
+
+[node name="Sprite3D" type="Sprite3D" parent="."]
+transform = Transform3D(0.380407, 0.204223, 0.252158, -6.46342e-09, 0.388551, -0.314687, -0.324485, 0.239419, 0.295615, 0, 0.0891647, 0)
+modulate = Color(1, 0, 0, 1)
+render_priority = 100
+texture = ExtResource("2_hrula")

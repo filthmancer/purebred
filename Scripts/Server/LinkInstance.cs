@@ -11,6 +11,8 @@ public partial class LinkInstance : InteractableArea3D, IDisposablePoolResource,
 
     public IDisposablePool Pool { get; set; }
 
+    private Server server;
+
     public List<ServerNode> Nodes;
     public List<Vector3> Points => render.Points;
     public string Description()
@@ -50,12 +52,13 @@ public partial class LinkInstance : InteractableArea3D, IDisposablePoolResource,
     {
     }
 
-    public void Initialise(ServerNode[] nodes)
+    public void Initialise(Server _server, ServerNode[] _nodes)
     {
-        Nodes = new List<ServerNode>(nodes);
-        for (int i = 0; i < nodes.Length; i++)
+        server = _server;
+        Nodes = new List<ServerNode>(_nodes);
+        for (int i = 0; i < _nodes.Length; i++)
         {
-            render.AddPoint(nodes[i].Position);
+            render.AddPoint(_nodes[i].Position);
         }
         render.RegenerateLine();
 
@@ -103,9 +106,30 @@ public partial class LinkInstance : InteractableArea3D, IDisposablePoolResource,
         {
             if (target is ServerNode node && Nodes.Contains(node))
             {
-                _col = new Color(1.0F, 0.5F, 0.5F);
+                switch (state)
+                {
+                    case InteractionState.Highlighted:
+                        _col = new Color(1.0F, 0.5F, 0.5F);
+                        break;
+                    case InteractionState.Selected:
+                        _col = new Color(1.0F, 0.5F, 0.5F);
+                        break;
+                    case InteractionState.Unhighlighted:
+                        if (server.interactable_selected != target)
+                        {
+                            _col = new Color(1.0F, 1.0F, 1.0F);
+                        }
+                        break;
+                    default:
+                        _col = new Color(1.0F, 1.0F, 1.0F);
+                        break;
+                }
+
             }
-            else _col = new Color(1.0F, 1.0F, 1.0F);
+            else
+            {
+                _col = new Color(1.0F, 1.0F, 1.0F);
+            }
         }
         SetColor();
     }

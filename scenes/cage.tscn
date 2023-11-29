@@ -1,0 +1,21 @@
+[gd_scene load_steps=4 format=3 uid="uid://bhnqiqgbt8lac"]
+
+[ext_resource type="Script" path="res://Scripts/Server/Components/Cage.cs" id="1_cpctk"]
+[ext_resource type="Texture2D" uid="uid://cuqfkyv2ti17d" path="res://Assets/art/wenrexa/СommonElement/Icon02.png" id="2_mfeag"]
+
+[sub_resource type="BoxShape3D" id="BoxShape3D_4tviy"]
+size = Vector3(1, 0.173235, 1)
+
+[node name="cage" type="Area3D"]
+transform = Transform3D(0.5, 0, 0, 0, 0.5, 0, 0, 0, 0.5, 0, 0, 0)
+script = ExtResource("1_cpctk")
+
+[node name="CollisionShape3D" type="CollisionShape3D" parent="."]
+transform = Transform3D(1.07451, 0, 0, 0, 1.07451, 0, 0, 0, 1.07451, 0.00155878, -0.0227344, -0.0014205)
+shape = SubResource("BoxShape3D_4tviy")
+disabled = true
+
+[node name="Sprite3D" type="Sprite3D" parent="."]
+transform = Transform3D(1.70217, 0, 0, 0, -7.44044e-08, -1.70217, 0, 1.70217, -7.44044e-08, 0, 0, 0)
+render_priority = 51
+texture = ExtResource("2_mfeag")

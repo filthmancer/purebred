@@ -103,20 +103,6 @@ public partial class ServerNode : InteractableArea3D, IDisposablePoolResource, I
         GetNode<SpriteBase3D>("Sprite").Modulate = col;
     }
 
-    // public override void SetAsHighlight(bool active)
-    // {
-    //     Color col = active ? new Color(1.0F, 0.5F, 0.5F) : new Color(1.0F, 1.0F, 1.0F);
-    //     SetColor(col);
-    //     if (active)
-    //     {
-    //         foreach (var link in server.linkInstances)
-    //         {
-    //             if (link.Value[0] == this || link.Value[1] == this)
-    //                 link.Key.SetColor(col);
-    //         }
-    //     }
-    // }
-
     public override void UpdateTarget(InteractableArea3D target, InteractionState state)
     {
         if (target == this)
@@ -131,6 +117,9 @@ public partial class ServerNode : InteractableArea3D, IDisposablePoolResource, I
                     break;
                 case InteractionState.Selected:
                     SetColor(new Color(1.0F, 0.0F, 0.0F));
+                    break;
+                case InteractionState.Unhighlighted:
+                    if (server.interactable_selected != this) SetColor(new Color(1.0F, 1.0F, 1.0F));
                     break;
             }
         }

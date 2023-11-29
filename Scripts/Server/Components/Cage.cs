@@ -1,18 +1,16 @@
 using Godot;
 using System;
 
-public partial class ServerComponent : Area3D, IDescribableNode
+public partial class Cage : ServerComponent
 {
-	public ServerNode nodeInstance;
-	public virtual string Name()
+	public override string Name()
 	{
-		return "Component";
+		return "Cage";
 	}
-	public virtual string Description()
+	public override string Description()
 	{
-		return "Component";
+		return "Traps a virus that has entered this node. Viruses are unable to leave the node without breaking the cage";
 	}
-
 	// Called when the node enters the scene tree for the first time.
 	public override void _Ready()
 	{
