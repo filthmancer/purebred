@@ -14,9 +14,11 @@ public partial class Main : Node3D
     public float Currency = 0;
 
     [Signal]
-    public delegate void HighlightUpdatedEventHandler(Node node);
+    public delegate void HighlightUpdatedEventHandler(InteractableArea3D node);
     [Signal]
-    public delegate void HighlightSelectedEventHandler(Node node);
+    public delegate void HighlightSelectedEventHandler(InteractableArea3D node);
+    [Signal]
+    public delegate void HighlightDeselectedEventHandler(InteractableArea3D node);
     [Signal]
     public delegate void ServerGenerationCompleteEventHandler(Server server);
     [Signal]

@@ -2,7 +2,7 @@ using Godot;
 using System;
 using System.Collections.Generic;
 
-public partial class DebugRender : InteractableArea3D, IDisposablePoolResource
+public partial class DebugRender : Area3D, IDisposablePoolResource
 {
 	private MeshInstance3D _meshInstance;
 	public MeshInstance3D meshInstance
@@ -73,7 +73,7 @@ public partial class DebugRender : InteractableArea3D, IDisposablePoolResource
 	{
 	}
 
-	public override void SetColor(Color col)
+	public void SetColor(Color col)
 	{
 		var mat = (StandardMaterial3D)meshInstance.GetActiveMaterial(0);
 		mat.AlbedoColor = col;
@@ -137,11 +137,5 @@ public partial class DebugRender : InteractableArea3D, IDisposablePoolResource
 	public void Dispose()
 	{
 
-	}
-
-	public override void SetAsTarget(bool active)
-	{
-		Color col = active ? new Color(1.0F, 0.5F, 0.5F) : new Color(1F, 1F, 1F);
-		SetColor(col);
 	}
 }

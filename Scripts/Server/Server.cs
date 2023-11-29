@@ -18,9 +18,8 @@ public partial class Server : Node
     public float Heat = 0.0F;
     public float TickRate = 1.0F;
 
-    private InteractableArea3D highlightedArea;
-
-    public ServerNode targetedNode { get; private set; }
+    private InteractableArea3D interactable_highlighted;
+    public InteractableArea3D interactable_selected { get; private set; }
 
     private AStar2D pathfinding;
     public override void _Ready()
@@ -31,15 +30,18 @@ public partial class Server : Node
     {
         if (Input.IsActionJustPressed("select"))
         {
-            if (highlightedArea != null)
+            if (interactable_highlighted != null)
             {
-                main.EmitGodotSignal(nameof(Main.HighlightSelected), highlightedArea);
-                if (highlightedArea is ServerNode)
-                    targetedNode = highlightedArea as ServerNode;
+                if (interactable_selected != null)
+                {
+                    main.EmitGodotSignal(nameof(Main.HighlightDeselected), interactable_selected);
+                }
+                interactable_selected = interactable_highlighted;
+                main.EmitGodotSignal(nameof(Main.HighlightSelected), interactable_selected);
             }
             else
             {
-                // main.EmitGodotSignal(nameof(Main.HighlightSelected));
+                // main.EmitGodotSignal(nameof(Main.HighlightDeselected), highlightedArea);
             }
 
         }
@@ -60,6 +62,7 @@ public partial class Server : Node
             nodeInstance.Flags = serverData.Nodes[n].Flags;
 
             nodeInstance.Initialise(null, this);
+            nodeInstance.InitialiseInteractionEvents(main);
             nodeInstance.Connect("mouse_entered", Callable.From(() => SetTargetNode(nodeInstance, true)));
             nodeInstance.Connect("mouse_exited", Callable.From(() => SetTargetNode(nodeInstance, false)));
 
@@ -73,6 +76,7 @@ public partial class Server : Node
             var link = Visuals_LinkBetween(nodeA, nodeB);
             link.Flags = serverData.Links[l].Flags;
         }
+
     }
 
     private LinkInstance Visuals_LinkBetween(ServerNode nodeA, ServerNode nodeB)
@@ -87,6 +91,7 @@ public partial class Server : Node
         linkInstance.render.Connect("mouse_entered", Callable.From(() => SetTargetNode(linkInstance, true)));
         linkInstance.render.Connect("mouse_exited", Callable.From(() => SetTargetNode(linkInstance, false)));
         linkInstances[linkInstance] = new ServerNode[2] { nodeA, nodeB };
+        linkInstance.InitialiseInteractionEvents(main);
         AddChild(linkInstance);
         return linkInstance;
     }
@@ -192,23 +197,15 @@ public partial class Server : Node
 
     public void SetTargetNode(InteractableArea3D target, bool active)
     {
-        foreach (var link in linkInstances)
-        {
-            link.Key.SetColor(new Color(1.0F, 1.0F, 1.0F));
-        }
-
         if (!active)
         {
             target = null;
         }
 
-        if (target != highlightedArea && highlightedArea != null)
-            highlightedArea.SetAsTarget(false);
+        interactable_highlighted = target;
+        // if (highlightedArea != null) highlightedArea.SetAsTarget(true);
 
-        highlightedArea = target;
-        if (highlightedArea != null) highlightedArea.SetAsTarget(true);
-
-        main.EmitGodotSignal(nameof(Main.HighlightUpdated), highlightedArea);
+        main.EmitGodotSignal(nameof(Main.HighlightUpdated), interactable_highlighted);
     }
 
     #region Pathfinding

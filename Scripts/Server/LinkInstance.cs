@@ -11,7 +11,7 @@ public partial class LinkInstance : InteractableArea3D, IDisposablePoolResource,
 
     public IDisposablePool Pool { get; set; }
 
-    public ServerNode[] Nodes;
+    public List<ServerNode> Nodes;
     public List<Vector3> Points => render.Points;
     public string Description()
     {
@@ -52,7 +52,7 @@ public partial class LinkInstance : InteractableArea3D, IDisposablePoolResource,
 
     public void Initialise(ServerNode[] nodes)
     {
-        Nodes = nodes;
+        Nodes = new List<ServerNode>(nodes);
         for (int i = 0; i < nodes.Length; i++)
         {
             render.AddPoint(nodes[i].Position);
@@ -75,13 +75,48 @@ public partial class LinkInstance : InteractableArea3D, IDisposablePoolResource,
 
     }
 
-    public override void SetColor(Color col)
+    private Color _col;
+    public void SetColor()
     {
-        render.SetColor(col);
+        render.SetColor(_col);
     }
 
-    public override void SetAsTarget(bool active)
+    public override void UpdateTarget(InteractableArea3D target, InteractionState state)
     {
-        render.SetAsTarget(active);
+        if (target == this)
+        {
+            switch (state)
+            {
+                case InteractionState.Selected:
+                    _col = new Color(1.0F, 0.0F, 0.0F);
+                    break;
+                case InteractionState.Highlighted:
+                    _col = new Color(1.0F, 0.5F, 0.5F);
+                    break;
+                case InteractionState.Deselected:
+                    _col = new Color(1.0F, 1.0F, 1.0F);
+                    break;
+            }
+
+        }
+        else
+        {
+            if (target is ServerNode node && Nodes.Contains(node))
+            {
+                _col = new Color(1.0F, 0.5F, 0.5F);
+            }
+            else _col = new Color(1.0F, 1.0F, 1.0F);
+        }
+        SetColor();
     }
+
+    // public override void SetAsHighlight(bool active)
+    // {
+    //     render.SetAsTarget(active);
+    // }
+
+    // public override void SetAsTarget(bool active)
+    // {
+    //     render.SetAsTarget(active);
+    // }
 }

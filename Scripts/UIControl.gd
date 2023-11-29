@@ -20,16 +20,15 @@ func _process(delta):
 	pass
 	
 func component_button_press():
-	server.targetedNode.BuildComponent("servercomponent");
+	server.interactable_selected.BuildComponent("servercomponent");
 	
 func move_button_press():
-	get_node("/root/Main").call("EmitGodotSignal","MoveActors", server.targetedNode, "allies");
+	get_node("/root/Main").emit_signal("MoveActors", server.interactable_selected);
 	
 func update_highlight_description(node):
 	if node == null:
 		$description_box/description_text.text = "";
 		$name_text.set_text("");
-		
 	else:
 		var description = str(node);
 		var name = str(node);
@@ -48,5 +47,8 @@ func select_highlight(node = null):
 		$ToolButtonA.hide();
 		$ToolButtonB.hide();
 	else:
-		$ToolButtonA.show();
+		if node is ServerNode:
+			$ToolButtonA.show();
+		else:
+			$ToolButtonA.hide();
 		$ToolButtonB.show();
