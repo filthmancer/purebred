@@ -13,7 +13,7 @@ public partial class Main : Node3D
     public Camera3D mainCamera;
     private Node3D actorInstance;
 
-    public float Currency = 0;
+    public float Currency = 1000;
 
     public RandomNumberGenerator rng = new RandomNumberGenerator();
 
@@ -29,16 +29,18 @@ public partial class Main : Node3D
     public delegate void ServerGenerationCompleteEventHandler(Server server);
     [Signal]
     public delegate void MoveActorsEventHandler(string id);
+    [Signal]
+    public delegate void OnTickEventHandler();
 
     public static Pool<ServerNode> pool_serverNode = new Pool<ServerNode>(10, p => ServerNode.Instantiate(p), PoolLoadingMode.Eager);
     public static Pool<LinkInstance> pool_linkInstance = new Pool<LinkInstance>(10, p => LinkInstance.Instantiate(p), PoolLoadingMode.Eager);
 
-    public static Dictionary<string, PackedScene> serverComponents = new Dictionary<string, PackedScene>();
+    public static Dictionary<string, ComponentData> serverComponents = new Dictionary<string, ComponentData>();
 
     public override void _Ready()
     {
-        serverComponents["servercomponent"] = GD.Load<PackedScene>("res://scenes/server_component.tscn");
-        serverComponents["cage"] = GD.Load<PackedScene>("res://scenes/cage.tscn");
+        serverComponents["cage"] = new ComponentData(GD.Load<PackedScene>("res://scenes/cage.tscn"), 400);
+        serverComponents["miner"] = new ComponentData(GD.Load<PackedScene>("res://scenes/miner.tscn"), 100);
         server.main = this;
         ServerGenerationComplete += SetupActor;
         server.LoadLayout("serverD");
@@ -88,6 +90,30 @@ public partial class Main : Node3D
             return true;
         }
         return false;
+    }
+
+    public bool PurchaseItem(string id)
+    {
+        if (!serverComponents.ContainsKey(id))
+            return false;
+
+        if (Currency < serverComponents[id].cost)
+            return false;
+
+        Currency -= serverComponents[id].cost;
+        return true;
+    }
+
+
+    public struct ComponentData
+    {
+        public PackedScene scene;
+        public int cost;
+        public ComponentData(PackedScene _scene, int _cost)
+        {
+            scene = _scene;
+            cost = _cost;
+        }
     }
 }
 

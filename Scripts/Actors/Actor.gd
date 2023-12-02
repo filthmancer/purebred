@@ -6,6 +6,9 @@ var speed = 5;
 var path = []
 var node_current;
 const ServerNode = preload("res://Scripts/Server/ServerNode.cs");
+const LinkInstance = preload("res://Scripts/Server/LinkInstance.cs");
+
+var node_last;
 # Called when the node enters the scene tree for the first time.
 func _ready():
 	target_pos = position;
@@ -33,11 +36,16 @@ func move_to_node(target= null):
 
 
 func move_to_next_path_point(delta):
-	target_pos = path[0].position
+	if path[0] is LinkInstance:
+		target_pos = path[0].position;
+	elif path[0] is ServerNode:
+		target_pos = path[0].position
+		
 	var dist = abs(position - target_pos);
 	if dist.length() > 0.2:
 		position += ((target_pos - position).normalized() * (delta * speed));
 	else:
 		position = target_pos;
+		node_last = node_current;
 		node_current = path[0];
 		path.remove_at(0);

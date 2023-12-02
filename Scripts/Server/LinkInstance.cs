@@ -15,6 +15,13 @@ public partial class LinkInstance : InteractableArea3D, IDisposablePoolResource,
 
     public List<ServerNode> Nodes;
     public List<Vector3> Points => render.Points;
+
+    public int ID => IDFromNodes(Nodes[0], Nodes[1]);
+
+    public static int IDFromNodes(ServerNode nodeA, ServerNode nodeB)
+    {
+        return (nodeA.ID * 100) + (nodeB.ID * 10000);
+    }
     public string Description()
     {
         string desc = $"Links {Nodes[0].Name()} and {Nodes[1].Name()}. ";
@@ -58,7 +65,7 @@ public partial class LinkInstance : InteractableArea3D, IDisposablePoolResource,
         Nodes = new List<ServerNode>(_nodes);
         for (int i = 0; i < _nodes.Length; i++)
         {
-            render.AddPoint(_nodes[i].Position);
+            render.AddPoint(_nodes[i].Position - this.Position);
         }
         render.RegenerateLine();
 
@@ -67,6 +74,11 @@ public partial class LinkInstance : InteractableArea3D, IDisposablePoolResource,
         {
             collision.MakeConvexFromSiblings();
         }
+    }
+
+    public int GetHeat()
+    {
+        return Flags.HasFlag(Server.LinkFlags.Firewall) ? 5 : 0;
     }
 
     public void Acquire()
@@ -131,7 +143,24 @@ public partial class LinkInstance : InteractableArea3D, IDisposablePoolResource,
                 _col = new Color(1.0F, 1.0F, 1.0F);
             }
         }
+        if (Flags == Server.LinkFlags.Firewall)
+        {
+            _col = new Color(0.0F, 1.0F, 0.0F);
+        }
         SetColor();
+    }
+
+    public void BuildComponent(string id)
+    {
+        if (id == "firewall")
+        {
+            Flags = Server.LinkFlags.Firewall;
+        }
+    }
+
+    public bool IsFirewall()
+    {
+        return Flags.HasFlag(Server.LinkFlags.Firewall);
     }
 
     // public override void SetAsHighlight(bool active)

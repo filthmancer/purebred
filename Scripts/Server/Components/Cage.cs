@@ -3,6 +3,7 @@ using System;
 
 public partial class Cage : ServerComponent
 {
+	public override string ID => "cage";
 	public override string Name()
 	{
 		return "Cage";

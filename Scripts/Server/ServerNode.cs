@@ -13,8 +13,11 @@ public partial class ServerNode : InteractableArea3D, IDisposablePoolResource, I
 
     public Server.NodeType NodeType = Server.NodeType.Standard;
 
+    [Export]
+    public int Heat = 0;
+
     public int ComponentMax = 1;
-    public List<ServerComponent> components = new List<ServerComponent>();
+    public List<Node3D> components = new List<Node3D>();
 
 
     public string Description()
@@ -28,7 +31,7 @@ public partial class ServerNode : InteractableArea3D, IDisposablePoolResource, I
 
         foreach (var component in components)
         {
-            desc += component.Name() + ", ";
+            desc += component.Call("Name").ToString() + ", ";
         }
         return desc;
     }
@@ -96,11 +99,27 @@ public partial class ServerNode : InteractableArea3D, IDisposablePoolResource, I
     {
         Position = _pos ?? Position;
         server = _server;
+        server.main.OnTick += OnTick;
     }
 
     public void SetColor(Color col)
     {
         GetNode<SpriteBase3D>("Sprite").Modulate = col;
+    }
+
+    public void OnTick()
+    {
+
+    }
+
+    public int GetHeat()
+    {
+        var total = Heat;
+        foreach (var comp in components)
+        {
+            total += comp.Call("get_heat").As<int>();
+        }
+        return total;
     }
 
     public override void UpdateTarget(InteractableArea3D target, InteractionState state)
@@ -135,6 +154,11 @@ public partial class ServerNode : InteractableArea3D, IDisposablePoolResource, I
         if (components.Count >= ComponentMax)
             return false;
 
+
+        // Attempts to purchase the item
+        if (!server.main.PurchaseItem(id))
+            return false;
+
         var component = server.Visuals_GenerateComponent(id);
         if (component == null)
         {
@@ -142,10 +166,35 @@ public partial class ServerNode : InteractableArea3D, IDisposablePoolResource, I
             return false;
         }
         component.Position = Vector3.Zero;
-        component.nodeInstance = this;
+        component.Call("initialise", this);
+        //component.Set("nodeinstance", this);
 
         AddChild(component);
         components.Add(component);
         return true;
+    }
+
+    public bool DestroyComponent(Node3D comp)
+    {
+        if (!components.Contains(comp))
+            return false;
+        components.Remove(comp);
+        comp.QueueFree();
+        return true;
+    }
+
+    public Node3D[] GetComponents()
+    {
+        return components.ToArray();
+    }
+
+    public bool HasComponent(string id)
+    {
+        return components.Find(n => n.Get("ID").ToString() == id) != null;
+    }
+
+    public void GainResource(string type, float amount, Node cause)
+    {
+        server.GainResource(type, amount, cause);
     }
 }

@@ -13,10 +13,12 @@ public partial class Server : Node
     public Main main;
 
     public Dictionary<int, ServerNode> nodeInstances = new Dictionary<int, ServerNode>();
-    public Dictionary<LinkInstance, ServerNode[]> linkInstances = new Dictionary<LinkInstance, ServerNode[]>();
+    public Dictionary<int, LinkInstance> linkInstances = new Dictionary<int, LinkInstance>();
 
-    public float Heat = 0.0F;
+    public int Heat = 0;
+    public int HeatMax = 50;
     public float TickRate = 1.0F;
+    private float TickRate_last = 0.0F;
 
     private InteractableArea3D interactable_highlighted;
     public InteractableArea3D interactable_selected { get; private set; }
@@ -28,11 +30,25 @@ public partial class Server : Node
 
     public override void _Process(double delta)
     {
-        // if (Input.IsActionJustPressed("select"))
-        // {
+        TickRate_last += (float)delta;
+        if (TickRate_last > TickRate)
+        {
+            TickRate_last = 0.0F;
+            main.EmitGodotSignal(nameof(Main.OnTick));
 
+            var heat_total = 0;
+            foreach (var node in nodeInstances.Values)
+            {
+                heat_total += node.GetHeat();
+            }
 
-        // }
+            foreach (var link in linkInstances.Values)
+            {
+                heat_total += link.GetHeat();
+            }
+
+            Heat = heat_total;
+        }
     }
     public override void _UnhandledInput(InputEvent @event)
     {
@@ -83,7 +99,7 @@ public partial class Server : Node
 
     public void Visuals_Update()
     {
-        for (int n = 0; n < serverData.Nodes.Length; n++)
+        for (int n = 0; n < serverData.Nodes.Count; n++)
         {
             if (!nodeInstances.ContainsKey(serverData.Nodes[n].ID))
             {
@@ -102,7 +118,7 @@ public partial class Server : Node
 
         }
 
-        for (int l = 0; l < serverData.Links.Length; l++)
+        for (int l = 0; l < serverData.Links.Count; l++)
         {
             var nodeA = nodeInstances[serverData.Links[l].NodeA];
             var nodeB = nodeInstances[serverData.Links[l].NodeB];
@@ -115,16 +131,21 @@ public partial class Server : Node
 
     private LinkInstance Visuals_LinkBetween(ServerNode nodeA, ServerNode nodeB)
     {
-        if (linkInstances.ContainsValue(new ServerNode[2] { nodeA, nodeB }))
+        if (linkInstances.ContainsKey(LinkInstance.IDFromNodes(nodeA, nodeB)))
         {
             return null;
         }
+
         var offset = (nodeB.Position - nodeA.Position).Normalized();
         var linkInstance = Main.pool_linkInstance.Acquire();
+        Vector3 linkPos = nodeB.Position - (nodeB.Position - nodeA.Position) / 2;
+        linkInstance.Position = linkPos;
+
         linkInstance.Initialise(this, new ServerNode[2] { nodeA, nodeB });
+
         linkInstance.render.Connect("mouse_entered", Callable.From(() => SetTargetNode(linkInstance, true)));
         linkInstance.render.Connect("mouse_exited", Callable.From(() => SetTargetNode(linkInstance, false)));
-        linkInstances[linkInstance] = new ServerNode[2] { nodeA, nodeB };
+        linkInstances[linkInstance.ID] = linkInstance;
         linkInstance.InitialiseInteractionEvents(main);
         AddChild(linkInstance);
         return linkInstance;
@@ -135,14 +156,14 @@ public partial class Server : Node
     /// </summary>
     /// <param name="id"></param>
     /// <returns></returns>
-    public ServerComponent Visuals_GenerateComponent(string id)
+    public Node3D Visuals_GenerateComponent(string id)
     {
         if (Main.serverComponents.ContainsKey(id))
         {
-            var comp = Main.serverComponents[id].Instantiate<ServerComponent>();
+            var comp = Main.serverComponents[id].scene.Instantiate();
             // comp.Connect("mouse_entered", Callable.From(() => SetTargetNode(comp, true)));
             // comp.Connect("mouse_exited", Callable.From(() => SetTargetNode(comp, false)));
-            return comp;
+            return comp as Node3D;
         }
         return null;
     }
@@ -169,21 +190,21 @@ public partial class Server : Node
             nodeInstances[node.ID] = node;
             node.Initialise(null, this);
         }
-        data.Nodes = new NodeData[nodeInstances.Count];
+        data.Nodes = new List<NodeData>();
         for (int i = 0; i < nodeInstances.Count; i++)
         {
-            data.Nodes[i] = new NodeData()
+            data.Nodes.Add(new NodeData()
             {
                 ID = nodeInstances[i].ID,
                 pos = nodeInstances[i].Position,
                 Flags = nodeInstances[i].Flags
-            };
+            });
         }
         GD.Print("Rebuilding server nodes, node instances: " + nodeInstances.Count);
     }
     private void RebuildLinksFromChildren(ref ServerData data)
     {
-        linkInstances = new Dictionary<LinkInstance, ServerNode[]>();
+        linkInstances = new Dictionary<int, LinkInstance>();
         var linkDataFromChildren = new List<int[]>();
 
         foreach (var child in GetChildren())
@@ -197,7 +218,7 @@ public partial class Server : Node
 
             if (a != null && b != null)
             {
-                linkInstances[link] = new ServerNode[2] { a, b };
+                linkInstances[link.ID] = link;
                 var l = new int[2] { a.ID, b.ID };
                 if (!linkDataFromChildren.Contains(l))
                     linkDataFromChildren.Add(l);
@@ -216,15 +237,15 @@ public partial class Server : Node
         }
 
         /// TODO: UPDATE linkDataFromChildren TO BE LINK DATA INSTANCES, SO WE CAN SEND FLAGS
-        data.Links = new LinkData[linkDataFromChildren.Count];
+        data.Links = new List<LinkData>();
         for (int i = 0; i < linkDataFromChildren.Count; i++)
         {
-            data.Links[i] = new LinkData()
+            data.Links.Add(new LinkData()
             {
                 NodeA = linkDataFromChildren[i][0],
                 NodeB = linkDataFromChildren[i][1],
                 Flags = 0
-            };
+            });
         }
 
     }
@@ -245,8 +266,21 @@ public partial class Server : Node
     }
     public ServerNode GetRandomNode()
     {
-        return nodeInstances[main.rng.RandiRange(0, nodeInstances.Count)];
+        return nodeInstances[main.rng.RandiRange(0, nodeInstances.Count - 1)];
     }
+
+    #region Currency
+    public void GainResource(string type, float amount, Node cause)
+    {
+        switch (type)
+        {
+            case "credits":
+                main.Currency += amount;
+                break;
+        }
+    }
+    #endregion
+
     #region Pathfinding
     private void UpdatePathfinding()
     {
@@ -257,15 +291,30 @@ public partial class Server : Node
                                 new Vector2(node.pos.X, node.pos.Z),
                                 1);
         }
+
         foreach (var link in serverData.Links)
         {
-            pathfinding.ConnectPoints(link.NodeA, link.NodeB);
+            var nodeA = serverData.Nodes.Find(n => n.ID == link.NodeA);
+            var nodeB = serverData.Nodes.Find(n => n.ID == link.NodeB);
+            Vector3 linkPos = nodeB.pos - (nodeB.pos - nodeA.pos) / 2;
+
+            pathfinding.AddPoint(link.ID,
+                                new Vector2(linkPos.X, linkPos.Z),
+                                1);
+
+            pathfinding.ConnectPoints(link.NodeA, link.ID);
+            pathfinding.ConnectPoints(link.ID, link.NodeB);
         }
     }
 
-    private Dictionary<string, System.Func<ServerNode, float, float>> ruleFunctions = new Dictionary<string, Func<ServerNode, float, float>>()
+    private Dictionary<string, System.Func<ServerNode, float, float>> nodeRuleFunctions = new Dictionary<string, Func<ServerNode, float, float>>()
     {
         {"avoid_cages", AvoidCages }
+    };
+
+    private Dictionary<string, System.Func<LinkInstance, float, float>> linkRuleFunctions = new Dictionary<string, Func<LinkInstance, float, float>>()
+    {
+        {"avoid_firewalls", AvoidFirewalls }
     };
 
     public static float AvoidCages(ServerNode node, float weightIn)
@@ -277,27 +326,43 @@ public partial class Server : Node
         return weightIn;
     }
 
-    public ServerNode[] GetPathFromTo(ServerNode a, ServerNode b, params string[] rules)
+    public static float AvoidFirewalls(LinkInstance link, float weightIn)
+    {
+        if (link.Flags.HasFlag(LinkFlags.Firewall))
+        {
+            return weightIn + 100;
+        }
+        return weightIn;
+    }
+
+    public Area3D[] GetPathFromTo(ServerNode a, ServerNode b, params string[] rules)
     {
         foreach (var node in pathfinding.GetPointIds())
         {
             float weightIn = pathfinding.GetPointWeightScale(node);
             foreach (string rule in rules)
             {
-                if (ruleFunctions.ContainsKey(rule))
+                if (nodeRuleFunctions.ContainsKey(rule) && nodeInstances.ContainsKey((int)node))
                 {
-                    weightIn = ruleFunctions[rule](nodeInstances[(int)node], weightIn);
+                    weightIn = nodeRuleFunctions[rule](nodeInstances[(int)node], weightIn);
+                }
+                if (linkRuleFunctions.ContainsKey(rule) && linkInstances.ContainsKey((int)node))
+                {
+                    weightIn = linkRuleFunctions[rule](linkInstances[(int)node], weightIn);
                 }
             }
             pathfinding.SetPointWeightScale(node, weightIn);
         }
         var path = pathfinding.GetIdPath(a.ID, b.ID);
-        List<ServerNode> pathAsNodes = new List<ServerNode>();
+        List<Area3D> pathAsObjects = new List<Area3D>();
         foreach (var point in path)
         {
-            pathAsNodes.Add(nodeInstances[(int)point]);
+            if (nodeInstances.ContainsKey((int)point))
+                pathAsObjects.Add(nodeInstances[(int)point]);
+            else if (linkInstances.ContainsKey((int)point))
+                pathAsObjects.Add(linkInstances[(int)point]);
         }
-        return pathAsNodes.ToArray();
+        return pathAsObjects.ToArray();
     }
 
     #endregion
@@ -320,15 +385,15 @@ public partial class Server : Node
         {
             links.Add(new LinkData()
             {
-                NodeA = link.Value[0].ID,
-                NodeB = link.Value[1].ID,
+                NodeA = link.Value.Nodes[0].ID,
+                NodeB = link.Value.Nodes[1].ID,
                 Flags = 0
             });
         }
         ServerData server = new ServerData()
         {
-            Nodes = nodes.ToArray(),
-            Links = links.ToArray()
+            Nodes = nodes,
+            Links = links
         };
         serverData = server;
         File.SaveJsonImmediate(path, server);
@@ -337,7 +402,7 @@ public partial class Server : Node
     public async Task LoadLayout(string path)
     {
         nodeInstances = new Dictionary<int, ServerNode>();
-        linkInstances = new Dictionary<LinkInstance, ServerNode[]>();
+        linkInstances = new Dictionary<int, LinkInstance>();
 
         var server = await File.LoadJson<Server.ServerData>(path);
         serverData = server;
@@ -359,8 +424,8 @@ public partial class Server : Node
 
     public struct ServerData
     {
-        public NodeData[] Nodes;
-        public LinkData[] Links;
+        public List<NodeData> Nodes;
+        public List<LinkData> Links;
         public NodeData GetNodeData(int ID)
         {
             return Nodes.First(n => n.ID == ID);
@@ -375,6 +440,7 @@ public partial class Server : Node
     }
     public struct LinkData
     {
+        public int ID => (NodeA * 100) + (NodeB * 10000);
         public int NodeA, NodeB;
         public LinkFlags Flags;
     }

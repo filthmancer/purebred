@@ -1,0 +1,39 @@
+[gd_scene load_steps=3 format=3 uid="uid://2t00lxnlt7dw"]
+
+[ext_resource type="Texture2D" uid="uid://dwr26dwdfofnr" path="res://Assets/art/kenney/greenSheet.png" id="1_pxn2l"]
+[ext_resource type="Texture2D" uid="uid://dfarrthnaj3pt" path="res://Assets/art/wenrexa/СommonElement/Icon05.png" id="2_3h7px"]
+
+[node name="ToolButton" type="Button"]
+custom_minimum_size = Vector2(60, 60)
+size_flags_horizontal = 4
+size_flags_vertical = 4
+action_mode = 0
+
+[node name="NinePatchRect" type="NinePatchRect" parent="."]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+texture = ExtResource("1_pxn2l")
+region_rect = Rect2(190, 195, 49, 48)
+patch_margin_left = 6
+patch_margin_top = 5
+patch_margin_right = 5
+patch_margin_bottom = 9
+
+[node name="Icon" type="TextureRect" parent="."]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+offset_left = 1.0
+offset_top = 5.0
+offset_right = -1.0
+offset_bottom = -11.0
+grow_horizontal = 2
+grow_vertical = 2
+texture = ExtResource("2_3h7px")
+expand_mode = 1
+stretch_mode = 5

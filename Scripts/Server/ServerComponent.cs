@@ -3,6 +3,7 @@ using System;
 
 public partial class ServerComponent : Area3D, IDescribableNode
 {
+	public virtual string ID => "servercomponent";
 	public ServerNode nodeInstance;
 	public virtual string Name()
 	{
