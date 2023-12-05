@@ -37,11 +37,27 @@ public partial class Main : Node3D
 
     public static Dictionary<string, ComponentData> serverComponents = new Dictionary<string, ComponentData>();
 
+    private Node3D cam_parent;
+    public override void _UnhandledInput(InputEvent @event)
+    {
+        if (@event is InputEventMagnifyGesture magnifyGesture)
+        {
+            mainCamera.Size *= magnifyGesture.Factor;
+        }
+        else if (@event is InputEventPanGesture panGesture)
+        {
+            Vector3 pos = cam_parent.Position;
+            pos.X += panGesture.Delta.X;
+            pos.Y += panGesture.Delta.Y;
+            cam_parent.Position = pos;
+        }
+    }
+
     public override void _Ready()
     {
+        cam_parent = GetNode<Node3D>("CamParent");
         serverComponents["cage"] = new ComponentData(GD.Load<PackedScene>("res://scenes/cage.tscn"), 400);
         serverComponents["miner"] = new ComponentData(GD.Load<PackedScene>("res://scenes/miner.tscn"), 100);
-        server.main = this;
         ServerGenerationComplete += SetupActor;
         server = GD.Load<PackedScene>("res://data/servers/server_c.tscn").Instantiate() as Server;
         AddChild(server);
