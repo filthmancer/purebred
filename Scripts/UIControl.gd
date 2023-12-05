@@ -13,8 +13,9 @@ var callable_is_node_instance;
 var callable_is_link_instance;
 # Called when the node enters the scene tree for the first time.
 func _ready():
-	server = get_node("/root/Main/Server")
+	
 	var main = get_node("/root/Main");
+	main.connect("ServerGenerationComplete", get_server);
 	main.connect("InteractableOver", update_highlight_description);
 	main.connect("HighlightSelected", select_highlight);
 	
@@ -30,9 +31,14 @@ func _ready():
 
 # Called every frame. 'delta' is the elapsed time since the previous frame.
 func _process(delta):
+	if server == null:
+		return
 	$credits.set_text("CR: " + str(server.main.Currency));
 	$heat.set_text(str(server.Heat) + "/" + str(server.HeatMax));
 	pass
+	
+func get_server(_server):
+	server = _server#get_node("/root/Main/Server")
 	
 func create_actionbutton(id, _func_select, _func_visibility, icon):
 	var button = action_button.instantiate()

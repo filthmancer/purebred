@@ -6,11 +6,33 @@ using System.Linq;
 using System.Runtime.CompilerServices;
 using System.Threading.Tasks;
 
+[Tool]
 public partial class Server : Node
 {
     private ServerData serverData;
 
     public Main main;
+
+    [Export]
+    public bool RegenerateNodes
+    {
+        get => false;
+        set
+        {
+            if (value)
+            {
+
+                var children = GetChildren().Where(n => n is ServerNode);
+                int IDCurrent = 0;
+                foreach (var child in children)
+                {
+                    ServerNode instance = child as ServerNode;
+                    instance.ID = IDCurrent++;
+                    child.Name = "NODE - " + instance.ID;
+                }
+            }
+        }
+    }
 
     public Dictionary<int, ServerNode> nodeInstances = new Dictionary<int, ServerNode>();
     public Dictionary<int, LinkInstance> linkInstances = new Dictionary<int, LinkInstance>();
@@ -30,6 +52,7 @@ public partial class Server : Node
 
     public override void _Process(double delta)
     {
+        if (Engine.IsEditorHint()) return;
         TickRate_last += (float)delta;
         if (TickRate_last > TickRate)
         {
@@ -227,10 +250,10 @@ public partial class Server : Node
 
         foreach (var a in nodeInstances)
         {
-            foreach (Node b in a.Value.linked_nodes)
+            foreach (ServerNode b in a.Value.linked_nodes)
             {
                 if (b == null) continue;
-                var l = new int[2] { a.Key, b.Get("ID").AsInt32() };
+                var l = new int[2] { a.Key, b.ID };
                 if (!linkDataFromChildren.Contains(l))
                     linkDataFromChildren.Add(l);
             }

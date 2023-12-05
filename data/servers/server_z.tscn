@@ -1,0 +1,31 @@
+[gd_scene load_steps=3 format=3 uid="uid://oyu7dtv5e5bd"]
+
+[ext_resource type="Script" path="res://Scripts/Server/Server.cs" id="1_wdbwb"]
+[ext_resource type="PackedScene" uid="uid://dummxnsurwjro" path="res://scenes/ServerNode.tscn" id="2_dqb43"]
+
+[node name="serverZ" type="Node"]
+script = ExtResource("1_wdbwb")
+
+[node name="NODE - 0" parent="." node_paths=PackedStringArray("linked_nodes") instance=ExtResource("2_dqb43")]
+transform = Transform3D(2, 0, 0, 0, 2, 0, 0, 0, 2, -3.84061, 0.261352, -5.90466)
+linked_nodes = [NodePath("../NODE - 1"), NodePath("../NODE - 4")]
+
+[node name="NODE - 1" parent="." node_paths=PackedStringArray("linked_nodes") instance=ExtResource("2_dqb43")]
+transform = Transform3D(2, 0, 0, 0, 2, 0, 0, 0, 2, 4.15939, 0.261352, -5.90466)
+ID = 1
+linked_nodes = [NodePath("../NODE - 0")]
+
+[node name="NODE - 2" parent="." node_paths=PackedStringArray("linked_nodes") instance=ExtResource("2_dqb43")]
+transform = Transform3D(2, 0, 0, 0, 2, 0, 0, 0, 2, 4.15939, 0.261352, 6.09534)
+ID = 2
+linked_nodes = [NodePath("../NODE - 3"), NodePath("../NODE - 4")]
+
+[node name="NODE - 3" parent="." node_paths=PackedStringArray("linked_nodes") instance=ExtResource("2_dqb43")]
+transform = Transform3D(2, 0, 0, 0, 2, 0, 0, 0, 2, -3.84061, 0.261352, 6.09534)
+ID = 3
+linked_nodes = [NodePath("../NODE - 2")]
+
+[node name="NODE - 4" parent="." node_paths=PackedStringArray("linked_nodes") instance=ExtResource("2_dqb43")]
+transform = Transform3D(2, 0, 0, 0, 2, 0, 0, 0, 2, 0.15939, 0.261352, 0.0953407)
+ID = 4
+linked_nodes = [NodePath("../NODE - 2"), NodePath("../NODE - 0")]

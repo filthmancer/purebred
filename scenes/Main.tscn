@@ -1,29 +1,25 @@
-[gd_scene load_steps=7 format=3 uid="uid://wdyxgrma1k2v"]
+[gd_scene load_steps=9 format=3 uid="uid://wdyxgrma1k2v"]
 
 [ext_resource type="Script" path="res://Scripts/Main.cs" id="1_c6i6j"]
 [ext_resource type="Texture2D" uid="uid://dn4rnaq24un4e" path="res://Assets/art/wenrexa/СommonElement/Background.jpg" id="2_jpf3h"]
-[ext_resource type="Script" path="res://Scripts/Server/Server.cs" id="3_h7l4b"]
 [ext_resource type="Script" path="res://Scripts/UIControl.gd" id="4_4tntm"]
 [ext_resource type="Texture2D" uid="uid://bunylms2v7nwa" path="res://Assets/art/kenney/blueSheet.png" id="4_n7fug"]
 [ext_resource type="PackedScene" uid="uid://2t00lxnlt7dw" path="res://scenes/tool_button.tscn" id="6_vmjye"]
 
-[node name="Main" type="Node3D" node_paths=PackedStringArray("server", "mainCamera")]
+[sub_resource type="PanoramaSkyMaterial" id="PanoramaSkyMaterial_gdqkv"]
+panorama = ExtResource("2_jpf3h")
+
+[sub_resource type="Sky" id="Sky_uky6q"]
+sky_material = SubResource("PanoramaSkyMaterial_gdqkv")
+
+[sub_resource type="Environment" id="Environment_j67e7"]
+background_mode = 2
+sky = SubResource("Sky_uky6q")
+sky_custom_fov = 90.0
+
+[node name="Main" type="Node3D" node_paths=PackedStringArray("mainCamera")]
 script = ExtResource("1_c6i6j")
-server = NodePath("Server")
-mainCamera = NodePath("Camera3D")
-
-[node name="Server" type="Node" parent="."]
-script = ExtResource("3_h7l4b")
-
-[node name="Camera3D" type="Camera3D" parent="."]
-transform = Transform3D(-0.707107, 0.5, -0.5, -4.42575e-08, 0.707107, 0.707107, 0.707107, 0.5, -0.5, -5, 7, -5)
-projection = 1
-size = 10.0
-
-[node name="Sprite3D" type="Sprite3D" parent="Camera3D"]
-transform = Transform3D(1, -5.96046e-08, -2.98023e-08, 2.98023e-08, 1, 0, -2.98023e-08, -1.19209e-07, 1, 2.14577e-06, -2.6226e-06, -47)
-render_priority = -50
-texture = ExtResource("2_jpf3h")
+mainCamera = NodePath("CamParent/Camera3D")
 
 [node name="UI" type="Control" parent="."]
 layout_mode = 3
@@ -147,3 +143,17 @@ metadata/_edit_use_anchors_ = true
 [node name="ToolButton" parent="UI/Buttons" instance=ExtResource("6_vmjye")]
 visible = false
 layout_mode = 2
+
+[node name="CamParent" type="Node3D" parent="."]
+
+[node name="Camera3D" type="Camera3D" parent="CamParent"]
+transform = Transform3D(-0.707107, 0.5, -0.5, -4.42575e-08, 0.707107, 0.707107, 0.707107, 0.5, -0.5, -5, 7, -5)
+environment = SubResource("Environment_j67e7")
+projection = 1
+size = 20.0
+
+[node name="Sprite3D" type="Sprite3D" parent="CamParent/Camera3D"]
+transform = Transform3D(1, -5.96046e-08, -2.98023e-08, 2.98023e-08, 1, 0, -2.98023e-08, -1.19209e-07, 1, 2.14577e-06, -2.6226e-06, -47)
+visible = false
+render_priority = -50
+texture = ExtResource("2_jpf3h")

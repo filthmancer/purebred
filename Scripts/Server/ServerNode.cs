@@ -1,13 +1,14 @@
 using Godot;
 using System;
 using System.Collections.Generic;
+[Tool]
 public partial class ServerNode : InteractableArea3D, IDisposablePoolResource, IDescribableNode
 {
     public IDisposablePool Pool { get; set; }
     [Export]
     public int ID;
     [Export]
-    public Node[] linked_nodes;
+    public Godot.Collections.Array<ServerNode> linked_nodes;
     [Export]
     public Server.NodeFlags Flags;
 
@@ -15,6 +16,30 @@ public partial class ServerNode : InteractableArea3D, IDisposablePoolResource, I
 
     [Export]
     public int Heat = 0;
+
+    [Export]
+    public bool LinkNodes
+    {
+        get => false;
+        set
+        {
+            if (value)
+            {
+                EditorPlugin plugin = new EditorPlugin();
+                var selected = plugin.GetEditorInterface().GetSelection().GetSelectedNodes();
+                foreach (var s in selected)
+                {
+                    if (s != this && s is ServerNode sn)
+                    {
+                        if (!linked_nodes.Contains(sn))
+                        {
+                            linked_nodes.Add(sn);
+                        }
+                    }
+                }
+            }
+        }
+    }
 
     public int ComponentMax = 1;
     public List<Node3D> components = new List<Node3D>();
@@ -46,8 +71,6 @@ public partial class ServerNode : InteractableArea3D, IDisposablePoolResource, I
         return "Node";
     }
 
-    [Export]
-    public float Radius = 0.5F;
     private Server server;
 
     private static PackedScene prefab;

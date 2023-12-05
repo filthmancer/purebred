@@ -27,7 +27,7 @@ project/assembly_name="Purebred"
 
 [editor_plugins]
 
-enabled=PackedStringArray("res://addons/filextensions/plugin.cfg", "res://addons/pluginloader/plugin.cfg")
+enabled=PackedStringArray("res://addons/pluginloader/plugin.cfg")
 
 [input]
 

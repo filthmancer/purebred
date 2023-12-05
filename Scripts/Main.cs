@@ -32,8 +32,8 @@ public partial class Main : Node3D
     [Signal]
     public delegate void OnTickEventHandler();
 
-    public static Pool<ServerNode> pool_serverNode = new Pool<ServerNode>(10, p => ServerNode.Instantiate(p), PoolLoadingMode.Eager);
-    public static Pool<LinkInstance> pool_linkInstance = new Pool<LinkInstance>(10, p => LinkInstance.Instantiate(p), PoolLoadingMode.Eager);
+    public static Pool<ServerNode> pool_serverNode = new Pool<ServerNode>(50, p => ServerNode.Instantiate(p), PoolLoadingMode.Lazy);
+    public static Pool<LinkInstance> pool_linkInstance = new Pool<LinkInstance>(50, p => LinkInstance.Instantiate(p), PoolLoadingMode.Lazy);
 
     public static Dictionary<string, ComponentData> serverComponents = new Dictionary<string, ComponentData>();
 
@@ -43,7 +43,12 @@ public partial class Main : Node3D
         serverComponents["miner"] = new ComponentData(GD.Load<PackedScene>("res://scenes/miner.tscn"), 100);
         server.main = this;
         ServerGenerationComplete += SetupActor;
-        server.LoadLayout("serverD");
+        server = GD.Load<PackedScene>("res://data/servers/server_c.tscn").Instantiate() as Server;
+        AddChild(server);
+        server.main = this;
+        server.RebuildDataFromChildren();
+        //server.main = this;
+        // server.LoadLayout("serverD");
         // server.RebuildDataFromChildren();
         // server.SaveLayout("serverD");
     }

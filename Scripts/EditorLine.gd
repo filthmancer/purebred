@@ -20,8 +20,8 @@ func _redraw(gizmo):
 	var lines = PackedVector3Array()
 	
 	for l in node3d.linked_nodes:
-		lines.push_back(Vector3(0,0,0));
-		lines.push_back(l.position- node3d.position);
+		lines.push_back(node3d.position);
+		lines.push_back(l.position);
 
 	
 	#var handles = PackedVector3Array()
