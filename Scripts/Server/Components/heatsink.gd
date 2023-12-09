@@ -15,14 +15,14 @@ func _process(delta):
 	
 func get_heat():
 	var heat_total = -heatMitigated;
-	var nodecomps = get_node_components();
-	if nodecomps != null:
-		for comp in nodecomps:
-			heat_total -= 2;
+	#var nodecomps = get_node_components();
+	#if nodecomps != null:
+	#	for comp in nodecomps:
+	#		heat_total -= 2;
 			
-	nodecomps = get_neighbour_components();
-	if nodecomps != null:
-		for comp in nodecomps:
+	var neighbours = get_neighbour_components();
+	if neighbours != null:
+		for comp in neighbours:
 			heat_total -= 2;
 		
 	return heat_total;

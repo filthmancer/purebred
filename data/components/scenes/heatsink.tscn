@@ -28,7 +28,7 @@ material = SubResource("StandardMaterial3D_ee1fv")
 [node name="heatsink" type="Area3D"]
 transform = Transform3D(0.5, 0, 0, 0, 0.5, 0, 0, 0, 0.5, 0, 0, 0)
 script = ExtResource("1_7bap5")
-heatMitigated = 20
+heatMitigated = 5
 
 [node name="CollisionShape3D" type="CollisionShape3D" parent="."]
 transform = Transform3D(1.07451, 0, 0, 0, 1.07451, 0, 0, 0, 1.07451, 0.00155878, -0.0227344, -0.0014205)
