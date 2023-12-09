@@ -6,7 +6,7 @@ func _get_gizmo_name():
 	return "EditorLine"
 	
 func _init():
-	create_material("main", Color(1,0,0))
+	create_material("main", Color(1,1,1))
 	create_handle_material("handles")
 	
 func _has_gizmo(for_node_3d):
@@ -20,14 +20,14 @@ func _redraw(gizmo):
 	var lines = PackedVector3Array()
 	
 	for l in node3d.linked_nodes:
-		lines.push_back(node3d.position);
-		lines.push_back(l.position);
+		lines.push_back(Vector3.ZERO);
+		lines.push_back(l.position - node3d.position);
 
 	
 	#var handles = PackedVector3Array()
 	#handles.push_back(Vector3(0,1,0))
 	#handles.push_back(Vector3(0, 20,0))
 	
-	gizmo.add_lines(lines, get_material("main",gizmo), false);
+	gizmo.add_lines(lines, get_material("main",gizmo), true);
 	#gizmo.add_handles(handles, get_material("handles", gizmo), []);
 		
