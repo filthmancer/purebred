@@ -6,19 +6,18 @@
 [sub_resource type="BoxShape3D" id="BoxShape3D_qktrn"]
 size = Vector3(1, 0.742553, 1)
 
-[node name="Area3D" type="Area3D" node_paths=PackedStringArray("linked_nodes")]
+[node name="Area3D" type="Area3D" node_paths=PackedStringArray("linked_nodes") groups=["ServerNodes"]]
 transform = Transform3D(2, 0, 0, 0, 2, 0, 0, 0, 2, 0, 0, 0)
 script = ExtResource("1_otohx")
 linked_nodes = []
-Radius = 1.5
 
 [node name="Sprite" type="Sprite3D" parent="."]
-transform = Transform3D(2, 0, 0, 0, -8.74228e-08, -2, 0, 2, -8.74228e-08, 0, -0.0524892, 0)
+transform = Transform3D(4, 0, 0, 0, -1.74846e-07, -4, 0, 4, -1.74846e-07, 0, -0.0524892, 0)
 texture_filter = 0
 render_priority = 50
 texture = ExtResource("2_8yeoe")
 region_rect = Rect2(0, 0, 32, 32)
 
 [node name="CollisionShape3D" type="CollisionShape3D" parent="."]
-transform = Transform3D(1, 0, 0, 0, 0.5, 0, 0, 0, 1, 0, -0.0481228, 0)
+transform = Transform3D(2, 0, 0, 0, 2, 0, 0, 0, 2, 0, -0.0481228, 0)
 shape = SubResource("BoxShape3D_qktrn")

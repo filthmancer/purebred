@@ -70,7 +70,7 @@ public partial class Server : Node
                 heat_total += link.GetHeat();
             }
 
-            Heat = heat_total;
+            Heat = Math.Max(heat_total, 0);
         }
     }
     public override void _UnhandledInput(InputEvent @event)
@@ -183,7 +183,7 @@ public partial class Server : Node
     {
         if (Main.serverComponents.ContainsKey(id))
         {
-            var comp = Main.serverComponents[id].scene.Instantiate();
+            var comp = Main.serverComponents[id].packedScene.Instantiate();
             // comp.Connect("mouse_entered", Callable.From(() => SetTargetNode(comp, true)));
             // comp.Connect("mouse_exited", Callable.From(() => SetTargetNode(comp, false)));
             return comp as Node3D;

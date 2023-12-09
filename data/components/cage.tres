@@ -1,0 +1,10 @@
+[gd_resource type="Resource" load_steps=3 format=3 uid="uid://cqe6xrn24820l"]
+
+[ext_resource type="PackedScene" uid="uid://bot0dy1ofcfpr" path="res://data/components/scenes/heatsink.tscn" id="1_egkyr"]
+[ext_resource type="Script" path="res://Scripts/Data/RComponent.cs" id="2_y7egv"]
+
+[resource]
+script = ExtResource("2_y7egv")
+ID = "heatsink"
+packedScene = ExtResource("1_egkyr")
+cost = 200

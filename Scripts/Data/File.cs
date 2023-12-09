@@ -6,7 +6,6 @@ using System.Threading.Tasks;
 using Newtonsoft.Json;
 using Tomlyn;
 using Godot;
-using System.IO;
 using System.Linq;
 
 public class File
@@ -174,5 +173,52 @@ public class File
         }
 
         await FileIO.WriteAllTextAsync(fdi.info.FullName, text);
+    }
+
+    public static string[] FilesInDirectory(string _path)
+    {
+        return IO.Directory.GetFiles(SaveDirectory + _path);
+    }
+
+    public static List<PackedSceneData> LoadPackedScenes(string directory)
+    {
+        string[] packedScenePaths = FilesInDirectory(SaveDirectory + directory);
+        List<PackedSceneData> packedSceneData = new List<PackedSceneData>();
+        foreach (var path in packedScenePaths)
+        {
+            PackedScene packedScene = GD.Load<PackedScene>(path);
+            if (packedScene != null)
+            {
+                string filename = path.Split("/").Last().Replace(".tscn", "");
+                packedSceneData.Add(new PackedSceneData()
+                {
+                    scene = packedScene,
+                    name = filename
+                });
+            }
+        }
+        return packedSceneData;
+    }
+
+    public static List<T> LoadObjects<T>(string directory) where T : Resource
+    {
+        string[] packedScenePaths = FilesInDirectory(directory);
+        List<T> objects = new List<T>();
+        foreach (var path in packedScenePaths)
+        {
+            try
+            {
+                T obj = GD.Load<T>(path);
+                objects.Add(obj);
+            }
+            catch { }
+        }
+        return objects;
+    }
+
+    public struct PackedSceneData
+    {
+        public PackedScene scene;
+        public string name;
     }
 }

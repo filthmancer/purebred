@@ -33,10 +33,11 @@ script = ExtResource("4_4tntm")
 
 [node name="description_box" type="NinePatchRect" parent="UI"]
 layout_mode = 2
-anchor_top = 1.0
+anchor_top = 0.916
+anchor_right = 0.169
 anchor_bottom = 1.0
-offset_top = -91.0
-offset_right = 324.0
+offset_top = -0.280074
+offset_right = -0.480028
 grow_vertical = 0
 texture = ExtResource("4_n7fug")
 region_rect = Rect2(0, 0, 190, 49)
@@ -63,12 +64,13 @@ text = "Standard, Burning"
 [node name="name_text" type="RichTextLabel" parent="UI"]
 clip_contents = false
 layout_mode = 2
-anchor_top = 0.836
-anchor_bottom = 0.836
+anchor_top = 0.878
+anchor_right = 0.042
+anchor_bottom = 0.916
 offset_left = 11.0
-offset_top = 45.12
-offset_right = 72.0
-offset_bottom = 73.12
+offset_top = -0.240023
+offset_right = -2.64001
+offset_bottom = -7.28007
 grow_vertical = 0
 pivot_offset = Vector2(-6, 0)
 theme_override_colors/default_color = Color(0.278431, 0.278431, 0.278431, 1)
@@ -111,12 +113,25 @@ theme_override_font_sizes/font_size = 30
 text = "CR: 1000"
 metadata/_edit_use_anchors_ = true
 
+[node name="data" type="Label" parent="UI"]
+layout_mode = 1
+anchors_preset = -1
+anchor_top = 0.0491481
+anchor_right = 0.198708
+anchor_bottom = 0.0907407
+offset_left = 17.0
+offset_top = -0.08
+offset_right = 0.47998
+theme_override_font_sizes/font_size = 30
+text = "D: 0"
+metadata/_edit_use_anchors_ = true
+
 [node name="heat" type="Label" parent="UI"]
 layout_mode = 1
 anchors_preset = -1
-anchor_top = 0.0463704
+anchor_top = 0.112111
 anchor_right = 0.198708
-anchor_bottom = 0.087963
+anchor_bottom = 0.153704
 offset_left = 17.0
 offset_top = -0.08
 offset_right = 0.47998

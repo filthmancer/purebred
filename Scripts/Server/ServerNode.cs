@@ -1,6 +1,7 @@
 using Godot;
 using System;
 using System.Collections.Generic;
+using System.Linq;
 [Tool]
 public partial class ServerNode : InteractableArea3D, IDisposablePoolResource, IDescribableNode
 {
@@ -209,6 +210,11 @@ public partial class ServerNode : InteractableArea3D, IDisposablePoolResource, I
     public Node3D[] GetComponents()
     {
         return components.ToArray();
+    }
+
+    public ServerNode[] GetNeighbours()
+    {
+        return linked_nodes.ToArray();
     }
 
     public bool HasComponent(string id)

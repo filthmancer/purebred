@@ -1,0 +1,27 @@
+[gd_scene load_steps=5 format=3 uid="uid://basykodf3h8cr"]
+
+[ext_resource type="Script" path="res://Scripts/Server/Components/Cage.gd" id="1_q21w5"]
+[ext_resource type="Texture2D" uid="uid://cuqfkyv2ti17d" path="res://Assets/art/wenrexa/СommonElement/Icon02.png" id="2_joy7i"]
+[ext_resource type="Texture2D" uid="uid://cesfj6wwwxet6" path="res://Assets/art/wenrexa/СommonElement/Slider.png" id="3_2rrdl"]
+
+[sub_resource type="BoxShape3D" id="BoxShape3D_4tviy"]
+size = Vector3(1, 0.173235, 1)
+
+[node name="cage" type="Area3D"]
+transform = Transform3D(0.5, 0, 0, 0, 0.5, 0, 0, 0, 0.5, 0, 0, 0)
+script = ExtResource("1_q21w5")
+
+[node name="CollisionShape3D" type="CollisionShape3D" parent="."]
+transform = Transform3D(1.07451, 0, 0, 0, 1.07451, 0, 0, 0, 1.07451, 0.00155878, -0.0227344, -0.0014205)
+shape = SubResource("BoxShape3D_4tviy")
+disabled = true
+
+[node name="Sprite3D" type="Sprite3D" parent="."]
+transform = Transform3D(1.70217, 0, 0, 0, -7.44044e-08, -1.70217, 0, 1.70217, -7.44044e-08, 0, 0, 0)
+render_priority = 51
+texture = ExtResource("2_joy7i")
+
+[node name="lifetime" type="Sprite3D" parent="."]
+transform = Transform3D(4.94975, 0.20279, 0.579228, 0, 0.409576, -0.573576, -4.94975, 0.20279, 0.579228, 0.275209, 0.614901, 0.274448)
+render_priority = 51
+texture = ExtResource("3_2rrdl")

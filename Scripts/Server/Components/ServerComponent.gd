@@ -40,3 +40,18 @@ func on_tick():
 func get_heat():
 	return 0;
 	
+func get_neighbour_components():
+	var neighbours = nodeInstance.GetNeighbours();
+	var neighbour_components = [];
+	for neighbour in neighbours:
+		neighbour_components.append_array(neighbour.GetComponents())
+	return neighbour_components;
+	
+func get_node_components():
+	var node_components = nodeInstance.GetComponents();
+	for component in node_components:
+		if component == self:
+			node_components.erase(component);
+			
+	return node_components;
+	

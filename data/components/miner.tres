@@ -1,0 +1,10 @@
+[gd_resource type="Resource" load_steps=3 format=3 uid="uid://dyqc1qitv7ogf"]
+
+[ext_resource type="PackedScene" uid="uid://d0v0fciug0wey" path="res://data/components/scenes/miner.tscn" id="1_yo7o0"]
+[ext_resource type="Script" path="res://Scripts/Data/RComponent.cs" id="2_s7soi"]
+
+[resource]
+script = ExtResource("2_s7soi")
+ID = "miner"
+packedScene = ExtResource("1_yo7o0")
+cost = 100
