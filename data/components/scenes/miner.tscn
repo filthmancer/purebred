@@ -10,6 +10,7 @@ size = Vector3(1, 0.173235, 1)
 [node name="miner" type="Area3D"]
 transform = Transform3D(0.5, 0, 0, 0, 0.5, 0, 0, 0, 0.5, 0, 0, 0)
 script = ExtResource("1_2s77m")
+neighbour_multiplier = 0.5
 
 [node name="CollisionShape3D" type="CollisionShape3D" parent="."]
 transform = Transform3D(1.07451, 0, 0, 0, 1.07451, 0, 0, 0, 1.07451, 0.00155878, -0.0227344, -0.0014205)
@@ -17,7 +18,7 @@ shape = SubResource("BoxShape3D_4tviy")
 disabled = true
 
 [node name="Sprite3D" type="Sprite3D" parent="."]
-transform = Transform3D(1.70217, 0, 0, 0, -7.44044e-08, -1.70217, 0, 1.70217, -7.44044e-08, 0, 0, 0)
+transform = Transform3D(5, 0, 0, 0, -2.18557e-07, -5, 0, 5, -2.18557e-07, 0, 0, 0)
 render_priority = 51
 texture = ExtResource("2_wl1d3")
 

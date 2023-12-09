@@ -38,9 +38,23 @@ public partial class Server : Node
     public Dictionary<int, LinkInstance> linkInstances = new Dictionary<int, LinkInstance>();
 
     public int Heat = 0;
+    private int Heat_components = 0;
     public int HeatMax = 50;
+    private int HeatMax_components = 0;
     public float TickRate = 1.0F;
     private float TickRate_last = 0.0F;
+
+
+
+    public int Credits = 1000;
+    public int CreditsMax() { return 2000 + CreditsMax_components; }
+    private int CreditsMax_components = 0;
+
+    public int Data = 0;
+    public int DataMax() { return 100 + DataMax_components; }
+    private int DataMax_components = 0;
+
+    private float Credits_thisTick, Data_thisTick;
 
     private InteractableArea3D interactable_highlighted;
     public InteractableArea3D interactable_selected { get; private set; }
@@ -59,18 +73,30 @@ public partial class Server : Node
             TickRate_last = 0.0F;
             main.EmitGodotSignal(nameof(Main.OnTick));
 
-            var heat_total = 0;
+            /// Heat from components
+            Heat_components = 0;
+            CreditsMax_components = 0;
+            DataMax_components = 0;
             foreach (var node in nodeInstances.Values)
             {
-                heat_total += node.GetHeat();
+                Heat_components += node.GetHeat();
+                CreditsMax_components += node.GetCreditsMax();
+                DataMax_components += node.GetCreditsMax();
             }
 
             foreach (var link in linkInstances.Values)
             {
-                heat_total += link.GetHeat();
+                Heat_components += link.GetHeat();
+                CreditsMax_components += link.GetCreditsMax();
+                DataMax_components += link.GetDataMax();
             }
 
-            Heat = Math.Max(heat_total, 0);
+            Heat = Math.Max(Heat_components, 0);
+            Credits = Math.Clamp(Credits + (int)Credits_thisTick, 0, CreditsMax());
+            Data = Math.Clamp(Data + (int)Data_thisTick, 0, DataMax());
+
+            Credits_thisTick = 0;
+            Data_thisTick = 0;
         }
     }
     public override void _UnhandledInput(InputEvent @event)
@@ -230,6 +256,7 @@ public partial class Server : Node
         linkInstances = new Dictionary<int, LinkInstance>();
         var linkDataFromChildren = new List<int[]>();
 
+        // Check link instances on the server first
         foreach (var child in GetChildren())
         {
             if (child is not LinkInstance)
@@ -242,20 +269,23 @@ public partial class Server : Node
             if (a != null && b != null)
             {
                 linkInstances[link.ID] = link;
-                var l = new int[2] { a.ID, b.ID };
-                if (!linkDataFromChildren.Contains(l))
-                    linkDataFromChildren.Add(l);
+                var lA = new int[2] { a.ID, b.ID };
+                var lB = new int[2] { b.ID, a.ID };
+                if (!linkDataFromChildren.Any(l => l.SequenceEqual(lA)) && !linkDataFromChildren.Any(l => l.SequenceEqual(lB)))
+                    linkDataFromChildren.Add(lA);
             }
         }
 
+        // Then check server node instances
         foreach (var a in nodeInstances)
         {
             foreach (ServerNode b in a.Value.linked_nodes)
             {
                 if (b == null) continue;
-                var l = new int[2] { a.Key, b.ID };
-                if (!linkDataFromChildren.Contains(l))
-                    linkDataFromChildren.Add(l);
+                var lA = new int[2] { a.Key, b.ID };
+                var lB = new int[2] { b.ID, a.Key };
+                if (!linkDataFromChildren.Any(l => l.SequenceEqual(lA)) && !linkDataFromChildren.Any(l => l.SequenceEqual(lB)))
+                    linkDataFromChildren.Add(lA);
             }
         }
 
@@ -298,7 +328,10 @@ public partial class Server : Node
         switch (type)
         {
             case "credits":
-                main.Currency += amount;
+                Credits_thisTick += amount;
+                break;
+            case "data":
+                Data_thisTick += amount;
                 break;
         }
     }
@@ -437,6 +470,19 @@ public partial class Server : Node
         main.EmitGodotSignal(nameof(Main.ServerGenerationComplete), this);
     }
 
+    public ServerNode[] GetAllNeighbours(ServerNode serverNode)
+    {
+        List<LinkData> links = serverData.Links.FindAll(l => l.NodeA == serverNode.ID || l.NodeB == serverNode.ID);
+        List<ServerNode> nodes = new List<ServerNode>();
+        foreach (var link in links)
+        {
+            if (link.NodeA == serverNode.ID)
+                nodes.Add(nodeInstances[link.NodeB]);
+            else if (link.NodeB == serverNode.ID)
+                nodes.Add(nodeInstances[link.NodeA]);
+        }
+        return nodes.ToArray();
+    }
     [Flags]
     public enum NodeFlags { None = 0, Burning = 1 }
     [Flags]

@@ -19,6 +19,12 @@ public partial class ServerNode : InteractableArea3D, IDisposablePoolResource, I
     public int Heat = 0;
 
     [Export]
+    public int DataMax = 0;
+
+    [Export]
+    public int CreditsMax = 0;
+
+    [Export]
     public bool LinkNodes
     {
         get => false;
@@ -146,6 +152,26 @@ public partial class ServerNode : InteractableArea3D, IDisposablePoolResource, I
         return total;
     }
 
+    public int GetDataMax()
+    {
+        var total = DataMax;
+        foreach (var comp in components)
+        {
+            total += comp.Call("get_datamax").As<int>();
+        }
+        return total;
+    }
+
+    public int GetCreditsMax()
+    {
+        var total = CreditsMax;
+        foreach (var comp in components)
+        {
+            total += comp.Call("get_creditsmax").As<int>();
+        }
+        return total;
+    }
+
     public override void UpdateTarget(InteractableArea3D target, InteractionState state)
     {
         if (target == this)
@@ -214,7 +240,7 @@ public partial class ServerNode : InteractableArea3D, IDisposablePoolResource, I
 
     public ServerNode[] GetNeighbours()
     {
-        return linked_nodes.ToArray();
+        return server.GetAllNeighbours(this);
     }
 
     public bool HasComponent(string id)

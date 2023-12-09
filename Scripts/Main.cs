@@ -1,9 +1,5 @@
 using Godot;
-using System;
 using System.Collections.Generic;
-using System.Threading.Tasks;
-using System.Diagnostics;
-using System.Threading;
 
 public partial class Main : Node3D
 {
@@ -12,8 +8,6 @@ public partial class Main : Node3D
     [Export]
     public Camera3D mainCamera;
     private Node3D actorInstance;
-
-    public float Currency = 1000;
 
     public RandomNumberGenerator rng = new RandomNumberGenerator();
 
@@ -35,7 +29,9 @@ public partial class Main : Node3D
     public static Pool<ServerNode> pool_serverNode = new Pool<ServerNode>(50, p => ServerNode.Instantiate(p), PoolLoadingMode.Lazy);
     public static Pool<LinkInstance> pool_linkInstance = new Pool<LinkInstance>(50, p => LinkInstance.Instantiate(p), PoolLoadingMode.Lazy);
 
-    public static Dictionary<string, ComponentData> serverComponents = new Dictionary<string, ComponentData>();
+    public static Dictionary<string, RComponent> serverComponents = new Dictionary<string, RComponent>();
+
+    private static Dictionary<string, RServer> serverScenes = new Dictionary<string, RServer>();
 
     private Node3D cam_parent;
     public override void _UnhandledInput(InputEvent @event)
@@ -56,17 +52,20 @@ public partial class Main : Node3D
     public override void _Ready()
     {
         cam_parent = GetNode<Node3D>("CamParent");
-        serverComponents["cage"] = new ComponentData(GD.Load<PackedScene>("res://scenes/cage.tscn"), 400);
-        serverComponents["miner"] = new ComponentData(GD.Load<PackedScene>("res://scenes/miner.tscn"), 100);
+
         ServerGenerationComplete += SetupActor;
-        server = GD.Load<PackedScene>("res://data/servers/server_c.tscn").Instantiate() as Server;
-        AddChild(server);
-        server.main = this;
-        server.RebuildDataFromChildren();
-        //server.main = this;
-        // server.LoadLayout("serverD");
-        // server.RebuildDataFromChildren();
-        // server.SaveLayout("serverD");
+
+        foreach (var server in File.LoadObjects<RServer>(AssetPaths.Servers))
+        {
+            serverScenes[server.ID] = server;
+        }
+
+        foreach (var component in File.LoadObjects<RComponent>(AssetPaths.Components))
+        {
+            serverComponents[component.ID] = component;
+        }
+
+        LoadServer("server_a");
     }
 
     public override void _Process(double delta)
@@ -118,22 +117,63 @@ public partial class Main : Node3D
         if (!serverComponents.ContainsKey(id))
             return false;
 
-        if (Currency < serverComponents[id].cost)
+        if (server.Credits < serverComponents[id].cost)
             return false;
 
-        Currency -= serverComponents[id].cost;
+        server.Credits -= serverComponents[id].cost;
         return true;
     }
 
-
-    public struct ComponentData
+    public bool LoadServer(string id)
     {
-        public PackedScene scene;
+        if (!serverScenes.ContainsKey(id))
+        {
+            return false;
+        }
+
+        server = serverScenes[id].packedScene.Instantiate() as Server;
+        AddChild(server);
+        server.main = this;
+        server.RebuildDataFromChildren();
+
+        return true;
+    }
+
+    public interface ISceneData
+    {
+        PackedScene scene { get; set; }
+        void Load();
+    }
+
+
+    public struct ComponentData : ISceneData
+    {
+        public PackedScene scene { get; set; }
         public int cost;
         public ComponentData(PackedScene _scene, int _cost)
         {
             scene = _scene;
             cost = _cost;
+        }
+        public void Load()
+        {
+
+        }
+    }
+
+    public struct ServerData : ISceneData
+    {
+        public PackedScene scene { get; set; }
+        public int nodes;
+        public int cost;
+        public ServerData(PackedScene _scene, int _cost)
+        {
+            scene = _scene;
+            cost = _cost;
+        }
+        public void Load()
+        {
+
         }
     }
 }
@@ -142,4 +182,6 @@ public static class AssetPaths
 {
     public const string Actor = "res://scenes/actor.tscn";
     public const string Virus = "res://scenes/virus.tscn";
+    public const string Servers = "servers";
+    public const string Components = "components";
 }

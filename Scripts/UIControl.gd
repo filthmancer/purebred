@@ -34,7 +34,8 @@ func _ready():
 func _process(delta):
 	if server == null:
 		return
-	$credits.set_text("CR: " + str(server.main.Currency));
+	$credits.set_text("CR: " + str(server.Credits) + " / " + str(server.CreditsMax()));
+	$data.set_text("D: " + str(server.Data) + " / " + str(server.DataMax()))
 	$heat.set_text(str(server.Heat) + "/" + str(server.HeatMax));
 	pass
 	

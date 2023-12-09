@@ -81,6 +81,15 @@ public partial class LinkInstance : InteractableArea3D, IDisposablePoolResource,
         return Flags.HasFlag(Server.LinkFlags.Firewall) ? 5 : 0;
     }
 
+    public int GetCreditsMax()
+    {
+        return 0;
+    }
+    public int GetDataMax()
+    {
+        return 0;
+    }
+
     public void Acquire()
     {
 
