@@ -3,6 +3,7 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 [Tool]
+[GlobalClass]
 public partial class ServerNode : InteractableArea3D, IDisposablePoolResource, IDescribableNode
 {
     public IDisposablePool Pool { get; set; }

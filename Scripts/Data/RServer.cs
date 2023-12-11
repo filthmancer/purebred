@@ -1,6 +1,7 @@
 using Godot;
 using System;
-
+[Tool]
+[GlobalClass]
 public partial class RServer : Resource
 {
     [Export]
@@ -9,5 +10,4 @@ public partial class RServer : Resource
     public PackedScene packedScene;
     [Export]
     public int cost;
-
 }

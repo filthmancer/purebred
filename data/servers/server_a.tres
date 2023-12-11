@@ -1,4 +1,4 @@
-[gd_resource type="Resource" load_steps=3 format=3 uid="uid://d0rvycmm45xhk"]
+[gd_resource type="Resource" script_class="RServer" load_steps=3 format=3 uid="uid://d0rvycmm45xhk"]
 
 [ext_resource type="PackedScene" uid="uid://c2iwn3pjkyodl" path="res://data/servers/scenes/server_a.tscn" id="1_nae73"]
 [ext_resource type="Script" path="res://Scripts/Data/RServer.cs" id="2_0jus6"]
