@@ -1,4 +1,5 @@
 using Godot;
+using System;
 using System.Collections.Generic;
 
 public partial class Main : Node3D
@@ -34,17 +35,20 @@ public partial class Main : Node3D
     private static Dictionary<string, RServer> serverScenes = new Dictionary<string, RServer>();
 
     private Node3D cam_parent;
+    private readonly Vector2 mainCamera_zoomThreshold = new Vector2(5, 30);
     public override void _UnhandledInput(InputEvent @event)
     {
         if (@event is InputEventMagnifyGesture magnifyGesture)
         {
-            mainCamera.Size *= magnifyGesture.Factor;
+            mainCamera.Size = Math.Clamp(mainCamera.Size * magnifyGesture.Factor, mainCamera_zoomThreshold.X, mainCamera_zoomThreshold.Y);
         }
         else if (@event is InputEventPanGesture panGesture)
         {
+            //* Panning has less effect the smaller the camera size is
+            float zoomFactor = Math.Clamp(1 - mainCamera_zoomThreshold.X / mainCamera.Size, 0.1F, 2);
             Vector3 pos = cam_parent.Position;
-            pos.X += panGesture.Delta.X;
-            pos.Y += panGesture.Delta.Y;
+            pos += cam_parent.Basis.X * (panGesture.Delta.X * zoomFactor);
+            pos += cam_parent.Basis.Z * (panGesture.Delta.Y * zoomFactor);
             cam_parent.Position = pos;
         }
     }
