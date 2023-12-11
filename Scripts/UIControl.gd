@@ -11,13 +11,19 @@ var buttons = {}
 var buttons_visibilitytest = {}
 var callable_is_node_instance;
 var callable_is_link_instance;
+
+var highlight_interactable = null;
+var selected_interactable = null;
+var highlight_components = []
 # Called when the node enters the scene tree for the first time.
 func _ready():
 	
 	var main = get_node("/root/Main");
 	main.connect("ServerGenerationComplete", get_server);
-	main.connect("InteractableOver", update_highlight_description);
+	main.connect("InteractableOver", enter_highlight);
+	main.connect("InteractableExit", exit_highlight);
 	main.connect("HighlightSelected", select_highlight);
+	main.connect("HighlightDeselected", deselect_highlight);
 	
 	callable_is_node_instance = Callable(is_node_instance);
 	callable_is_link_instance = Callable(is_link_instance);
@@ -54,8 +60,7 @@ func create_actionbutton(id, _func_select, _func_visibility, icon):
 	
 func update_highlight_description(node):
 	if node == null:
-		$description_box/description_text.text = "";
-		$name_text.set_text("");
+		exit_highlight(node);
 	else:
 		var description = str(node);
 		var name = str(node);
@@ -66,7 +71,34 @@ func update_highlight_description(node):
 			
 		$description_box/description_text.set_text(description);
 		$name_text.set_text(name);
+		
+		for comp in highlight_components:
+			comp.queue_free();
+			highlight_components.erase(comp);
+		if node is ServerNode:
+			for comp in node.GetComponents():
+				var newcomp = $description_box/Components/component.duplicate();
+				newcomp.show();
+				newcomp.get_node("description_text").set_text(comp.Description())
+				newcomp.get_node("name_text").set_text(comp.Name());
+				$description_box/Components.add_child(newcomp);
+				highlight_components.append(newcomp);
 	pass
+	
+func enter_highlight(node):
+	if server.interactable_selected!= null &&server.interactable_selected != node:
+		return;
+	update_highlight_description(node);
+	
+	
+func exit_highlight(node):
+	if server.interactable_selected != null:
+		return;
+	$description_box/description_text.text = "";
+	$name_text.set_text("");
+	for comp in highlight_components:
+		comp.queue_free();
+		highlight_components.erase(comp);
 	
 func is_node_instance(n):
 	return n is ServerNode;
@@ -76,6 +108,7 @@ func is_link_instance(l):
 
 	
 func select_highlight(node = null):
+	update_highlight_description(node);
 	for button in buttons:
 		if node == null:
 			buttons[button].hide();
@@ -83,6 +116,9 @@ func select_highlight(node = null):
 			var visible = buttons_visibilitytest[button].call(node);
 			buttons[button].visible = visible;
 	return;
+func deselect_highlight(node = null):
+	update_highlight_description(null);
+	update_highlight_description(server.interactable_highlighted)
 		
 		
 func component_button_press():

@@ -109,9 +109,10 @@ public partial class Server : Node
                 if (target == interactable_selected)
                 {
                     interactable_highlighted = interactable_selected;
-
-                    main.EmitGodotSignal(nameof(Main.HighlightDeselected), interactable_selected);
                     interactable_selected = null;
+
+                    //! Passing the highlighted element here as it is the same as the LAST selected element
+                    main.EmitGodotSignal(nameof(Main.HighlightDeselected), interactable_highlighted);
 
                     main.EmitGodotSignal(nameof(Main.InteractableOver), interactable_highlighted);
                     return;
@@ -121,22 +122,23 @@ public partial class Server : Node
             if (interactable_highlighted == interactable_selected)
                 return;
 
+            var interactable_selected_old = interactable_selected;
             //If we have highlighted an interactable that isn't currently selected
             if (interactable_highlighted != null)
             {
+                interactable_selected = interactable_highlighted;
                 //Send a signal to the old selected obj
                 if (interactable_selected != null)
                 {
-                    main.EmitGodotSignal(nameof(Main.HighlightDeselected), interactable_selected);
+                    main.EmitGodotSignal(nameof(Main.HighlightDeselected), interactable_selected_old);
                 }
-                interactable_selected = interactable_highlighted;
 
                 main.EmitGodotSignal(nameof(Main.HighlightSelected), interactable_selected);
             }
             else
             {
-                main.EmitGodotSignal(nameof(Main.HighlightDeselected), interactable_selected);
                 interactable_selected = null;
+                main.EmitGodotSignal(nameof(Main.HighlightDeselected), interactable_selected_old);
             }
         }
     }

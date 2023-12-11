@@ -2,6 +2,12 @@ extends "res://Scripts/Server/Components/ServerComponent.gd"
 
 
 @export var durability_decrease_per_tick = 0.2
+
+func Name():
+	return "Virus Trap";
+func Description():
+	return "Traps the next virus that enters this node. Durability decreases over time. Virus will continue to attack this component while it is trapped";
+	
 func initialise(_nodeInstance):
 	super(_nodeInstance);
 	ID = "cage";

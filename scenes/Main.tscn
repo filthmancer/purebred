@@ -1,8 +1,9 @@
-[gd_scene load_steps=9 format=3 uid="uid://wdyxgrma1k2v"]
+[gd_scene load_steps=10 format=3 uid="uid://wdyxgrma1k2v"]
 
 [ext_resource type="Script" path="res://Scripts/Main.cs" id="1_c6i6j"]
 [ext_resource type="Texture2D" uid="uid://dn4rnaq24un4e" path="res://Assets/art/wenrexa/СommonElement/Background.jpg" id="2_jpf3h"]
 [ext_resource type="Script" path="res://Scripts/UIControl.gd" id="4_4tntm"]
+[ext_resource type="Texture2D" uid="uid://l0b26w8axfhx" path="res://Assets/art/kenney/redSheet.png" id="4_bvleg"]
 [ext_resource type="Texture2D" uid="uid://bunylms2v7nwa" path="res://Assets/art/kenney/blueSheet.png" id="4_n7fug"]
 [ext_resource type="PackedScene" uid="uid://2t00lxnlt7dw" path="res://scenes/tool_button.tscn" id="6_vmjye"]
 
@@ -33,11 +34,12 @@ script = ExtResource("4_4tntm")
 
 [node name="description_box" type="NinePatchRect" parent="UI"]
 layout_mode = 2
-anchor_top = 0.916
-anchor_right = 0.169
-anchor_bottom = 1.0
-offset_top = -0.280074
-offset_right = -0.480028
+anchor_top = 0.831741
+anchor_right = 0.104938
+anchor_bottom = 1.00013
+offset_top = -0.28007
+offset_right = -0.48003
+offset_bottom = 1.85986
 grow_vertical = 0
 texture = ExtResource("4_n7fug")
 region_rect = Rect2(0, 0, 190, 49)
@@ -45,6 +47,7 @@ patch_margin_left = 8
 patch_margin_top = 8
 patch_margin_right = 8
 patch_margin_bottom = 8
+metadata/_edit_use_anchors_ = true
 
 [node name="description_text" type="RichTextLabel" parent="UI/description_box"]
 layout_mode = 1
@@ -60,13 +63,74 @@ grow_vertical = 0
 theme_override_colors/default_color = Color(0.278431, 0.278431, 0.278431, 1)
 theme_override_font_sizes/normal_font_size = 20
 text = "Standard, Burning"
+metadata/_edit_use_anchors_ = true
+
+[node name="Components" type="HBoxContainer" parent="UI/description_box"]
+custom_minimum_size = Vector2(100, 100)
+layout_mode = 1
+anchors_preset = -1
+anchor_left = 1.0
+anchor_right = 1.0
+anchor_bottom = 1.0
+offset_left = 7.0
+offset_top = 38.0
+offset_right = 207.0
+offset_bottom = -5.0
+grow_vertical = 0
+
+[node name="component" type="NinePatchRect" parent="UI/description_box/Components"]
+visible = false
+custom_minimum_size = Vector2(200, 100)
+layout_mode = 2
+texture = ExtResource("4_bvleg")
+region_rect = Rect2(0, 0, 190, 49)
+patch_margin_left = 8
+patch_margin_top = 8
+patch_margin_right = 8
+patch_margin_bottom = 8
+
+[node name="description_text" type="RichTextLabel" parent="UI/description_box/Components/component"]
+layout_mode = 1
+anchors_preset = -1
+anchor_top = 0.213333
+anchor_right = 1.0
+anchor_bottom = 1.0
+offset_left = 5.0
+offset_top = 6.0
+offset_right = -5.0
+offset_bottom = -9.0
+grow_horizontal = 2
+grow_vertical = 0
+theme_override_colors/default_color = Color(0.278431, 0.278431, 0.278431, 1)
+theme_override_font_sizes/normal_font_size = 15
+text = "Standard, Burning"
+metadata/_edit_use_anchors_ = true
+
+[node name="name_text" type="RichTextLabel" parent="UI/description_box/Components/component"]
+layout_mode = 1
+anchors_preset = -1
+anchor_right = 1.0
+anchor_bottom = 0.34
+offset_left = 5.0
+offset_top = 6.0
+offset_right = -5.0
+offset_bottom = -9.0
+grow_horizontal = 2
+grow_vertical = 0
+theme_override_colors/default_color = Color(0.278431, 0.278431, 0.278431, 1)
+theme_override_font_sizes/normal_font_size = 20
+text = "Heat Sink"
+scroll_active = false
+autowrap_mode = 0
+metadata/_edit_use_anchors_ = true
 
 [node name="name_text" type="RichTextLabel" parent="UI"]
 clip_contents = false
 layout_mode = 2
-anchor_top = 0.878
-anchor_right = 0.042
-anchor_bottom = 0.916
+anchor_left = 0.0015625
+anchor_top = 0.788185
+anchor_right = 0.0435625
+anchor_bottom = 0.826185
 offset_left = 11.0
 offset_top = -0.240023
 offset_right = -2.64001
@@ -80,6 +144,7 @@ fit_content = true
 scroll_active = false
 autowrap_mode = 0
 shortcut_keys_enabled = false
+metadata/_edit_use_anchors_ = true
 
 [node name="NinePatchRect" type="NinePatchRect" parent="UI/name_text"]
 show_behind_parent = true

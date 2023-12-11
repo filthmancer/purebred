@@ -1,10 +1,18 @@
 extends "res://Scripts/Server/Components/ServerComponent.gd"
 
 @export var heatMitigated = 10
+@export var heatPerNeighbour = 2;
+var neighbour_heat_mitigated = 0;
+func Name():
+	return "Heat Sink";
+func Description():
+	return "Heat: " + str(-heatMitigated) + "\nNeighbour heat mitigated: " + str(neighbour_heat_mitigated);
+	#"Lowers current server heat by " + str(heatMitigated) + "." + "Lowers active heat of neighbouring components by " + str(heatPerNeighbour);
+			
 func initialise(_nodeInstance):
 	super(_nodeInstance);
 	ID = "heatsink";
-
+	
 func on_tick():
 	super();
 
@@ -14,15 +22,10 @@ func _process(delta):
 	pass
 	
 func get_heat():
-	var heat_total = -heatMitigated;
-	#var nodecomps = get_node_components();
-	#if nodecomps != null:
-	#	for comp in nodecomps:
-	#		heat_total -= 2;
-			
+	neighbour_heat_mitigated = 0;		
 	var neighbours = get_neighbour_components();
 	if neighbours != null:
 		for comp in neighbours:
-			heat_total -= 2;
+			neighbour_heat_mitigated -= 2;
 		
-	return heat_total;
+	return -heatMitigated + neighbour_heat_mitigated;
