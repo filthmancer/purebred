@@ -11,6 +11,7 @@ var buttons = {}
 var buttons_visibilitytest = {}
 var callable_is_node_instance;
 var callable_is_link_instance;
+var callable_node_has_no_components;
 
 var highlight_interactable = null;
 var selected_interactable = null;
@@ -27,6 +28,7 @@ func _ready():
 	
 	callable_is_node_instance = Callable(is_node_instance);
 	callable_is_link_instance = Callable(is_link_instance);
+	callable_node_has_no_components = Callable(has_no_components);
 	
 	create_actionbutton("build_cage", component_button_press, callable_is_node_instance, "res://Assets/art/wenrexa/СommonElement/Icon02.png");
 	create_actionbutton("build_miner", miner_button_press, callable_is_node_instance, "res://Assets/art/wenrexa/СommonElement/Icon03.png");
@@ -106,6 +108,10 @@ func is_node_instance(n):
 func is_link_instance(l):
 	return l is LinkInstance;
 
+func has_no_components(n):
+	var c = n.GetComponents()
+	return c == null || c.length == 0;
+	
 	
 func select_highlight(node = null):
 	update_highlight_description(node);
@@ -117,9 +123,8 @@ func select_highlight(node = null):
 			buttons[button].visible = visible;
 	return;
 func deselect_highlight(node = null):
-	update_highlight_description(null);
+	select_highlight(null);
 	update_highlight_description(server.interactable_highlighted)
-		
 		
 func component_button_press():
 	if server.interactable_selected != null :

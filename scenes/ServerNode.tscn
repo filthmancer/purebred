@@ -4,7 +4,7 @@
 [ext_resource type="Texture2D" uid="uid://dt27rhk3cdqrm" path="res://Assets/art/node1.png" id="2_8yeoe"]
 
 [sub_resource type="BoxShape3D" id="BoxShape3D_qktrn"]
-size = Vector3(1, 0.742553, 1)
+size = Vector3(1, 0.573971, 1)
 
 [node name="Area3D" type="Area3D" node_paths=PackedStringArray("linked_nodes") groups=["ServerNodes"]]
 transform = Transform3D(2, 0, 0, 0, 2, 0, 0, 0, 2, 0, 0, 0)

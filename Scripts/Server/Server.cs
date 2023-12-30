@@ -202,6 +202,23 @@ public partial class Server : Node
         return linkInstance;
     }
 
+    public Node3D Visuals_Virus(ServerNode a)
+    {
+        if (!nodeInstances.ContainsValue(a))
+        {
+            return null;
+        }
+        var actorPrefab = GD.Load<PackedScene>(AssetPaths.Virus);
+        var actorInstance = actorPrefab.Instantiate<Node3D>();
+        actorInstance.Position = a.Position;
+        AddChild(actorInstance);
+        actorInstance.Call("initialise", this, a);
+        (actorInstance.GetNode("interactable") as InteractableActor).InitialiseInteractionEvents(main);
+        actorInstance.Connect("mouse_entered", Callable.From(() => SetTargetNode((actorInstance.GetNode("interactable") as InteractableActor), true)));
+        actorInstance.Connect("mouse_exited", Callable.From(() => SetTargetNode((actorInstance.GetNode("interactable") as InteractableActor), false)));
+        return actorInstance;
+    }
+
     /// <summary>
     /// Returns target component if it is in the main library
     /// </summary>

@@ -78,11 +78,7 @@ public partial class Main : Node3D
     }
     private void SetupActor(Server s)
     {
-        var actorPrefab = GD.Load<PackedScene>(AssetPaths.Virus);
-        actorInstance = actorPrefab.Instantiate<Node3D>();
-        actorInstance.Position = s.nodeInstances[0].Position;
-        AddChild(actorInstance);
-        actorInstance.Call("initialise", server, server.nodeInstances[0]);
+        actorInstance = s.Visuals_Virus(s.nodeInstances[0]);
     }
 
     public bool EmitGodotSignal(string name, params Godot.Variant[] args)

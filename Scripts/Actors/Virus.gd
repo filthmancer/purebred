@@ -54,3 +54,12 @@ func update_target():
 	timer = rng.randi_range(10, 25);
 	var target = server.GetRandomNode();
 	path = server.GetPathFromTo(node_current, target, ["avoid_firewalls"]);
+	
+func highlighted(target):
+	pass;
+	
+func name():
+	return "Virus";
+	
+func description():
+	return "Wanders aimlessly, attacks local components.";
