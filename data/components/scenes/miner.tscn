@@ -1,6 +1,6 @@
 [gd_scene load_steps=5 format=3 uid="uid://d0v0fciug0wey"]
 
-[ext_resource type="Script" path="res://Scripts/Server/Components/Miner.gd" id="1_2s77m"]
+[ext_resource type="Script" path="res://Scripts/Network/Components/Miner.gd" id="1_2s77m"]
 [ext_resource type="Texture2D" uid="uid://dle1aj6mno21l" path="res://Assets/art/wenrexa/СommonElement/Icon03.png" id="2_wl1d3"]
 [ext_resource type="Texture2D" uid="uid://cesfj6wwwxet6" path="res://Assets/art/wenrexa/СommonElement/Slider.png" id="3_u3fg0"]
 

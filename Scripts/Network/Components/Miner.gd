@@ -1,6 +1,6 @@
-extends "res://Scripts/Server/Components/ServerComponent.gd"
+extends "res://Scripts/Network/Components/ServerComponent.gd"
 
-const Miner = preload("res://Scripts/Server/Components/Miner.gd")
+const Miner = preload("res://Scripts/Network/Components/Miner.gd")
 @export var mineRate = 1;
 @export var neighbour_multiplier = 0.2;
 var active_mine_rate = 1;

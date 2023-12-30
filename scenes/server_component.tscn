@@ -1,6 +1,6 @@
 [gd_scene load_steps=4 format=3 uid="uid://jxcptpb31wgm"]
 
-[ext_resource type="Script" path="res://Scripts/Server/Components/ServerComponent.gd" id="1_hny2x"]
+[ext_resource type="Script" path="res://Scripts/Network/Components/ServerComponent.gd" id="1_hny2x"]
 [ext_resource type="Texture2D" uid="uid://bqurulm27qpd0" path="res://Assets/art/virus/enemyWalking_1.png" id="2_hwjei"]
 
 [sub_resource type="BoxShape3D" id="BoxShape3D_4tviy"]

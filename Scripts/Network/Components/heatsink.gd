@@ -1,4 +1,4 @@
-extends "res://Scripts/Server/Components/ServerComponent.gd"
+extends "res://Scripts/Network/Components/ServerComponent.gd"
 
 @export var heatMitigated = 10
 @export var heatPerNeighbour = 2;

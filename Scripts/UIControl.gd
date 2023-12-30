@@ -1,7 +1,7 @@
 extends Control
 
-const ServerNode = preload("res://Scripts/Server/ServerNode.cs");
-const LinkInstance = preload("res://Scripts/Server/LinkInstance.cs");
+const ServerNode = preload("res://Scripts/Network/ServerNode.cs");
+const LinkInstance = preload("res://Scripts/Network/LinkInstance.cs");
 const IDescribable = preload("res://Scripts/InteractableArea3D.cs")
 const Main = preload("res://Scripts/Main.cs")
 const action_button:PackedScene = preload("res://scenes/tool_button.tscn");
@@ -48,7 +48,7 @@ func _process(delta):
 	pass
 	
 func get_server(_server):
-	server = _server#get_node("/root/Main/Server")
+	server = _server#get_node("/root/Main/Network")
 	
 func create_actionbutton(id, _func_select, _func_visibility, icon):
 	var button = action_button.instantiate()

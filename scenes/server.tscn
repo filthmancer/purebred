@@ -1,6 +1,6 @@
 [gd_scene load_steps=2 format=3 uid="uid://cqns8swniyqbt"]
 
-[ext_resource type="Script" path="res://Scripts/Server/Server.cs" id="1_yymp8"]
+[ext_resource type="Script" path="res://Scripts/Network/Network.cs" id="1_yymp8"]
 
-[node name="Server" type="Node"]
+[node name="Network" type="Node"]
 script = ExtResource("1_yymp8")

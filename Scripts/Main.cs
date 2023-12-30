@@ -5,7 +5,7 @@ using System.Collections.Generic;
 public partial class Main : Node3D
 {
     [Export]
-    public Server server;
+    public Network server;
     [Export]
     public Camera3D mainCamera;
     private Node3D actorInstance;
@@ -21,7 +21,7 @@ public partial class Main : Node3D
     [Signal]
     public delegate void HighlightDeselectedEventHandler(InteractableArea3D node);
     [Signal]
-    public delegate void ServerGenerationCompleteEventHandler(Server server);
+    public delegate void ServerGenerationCompleteEventHandler(Network server);
     [Signal]
     public delegate void MoveActorsEventHandler(string id);
     [Signal]
@@ -76,7 +76,7 @@ public partial class Main : Node3D
     {
 
     }
-    private void SetupActor(Server s)
+    private void SetupActor(Network s)
     {
         actorInstance = s.Visuals_Virus(s.nodeInstances[0]);
     }
@@ -131,7 +131,7 @@ public partial class Main : Node3D
             return false;
         }
 
-        server = serverScenes[id].packedScene.Instantiate() as Server;
+        server = serverScenes[id].packedScene.Instantiate() as Network;
         AddChild(server);
         server.main = this;
         server.RebuildDataFromChildren();

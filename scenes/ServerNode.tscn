@@ -1,6 +1,6 @@
 [gd_scene load_steps=4 format=3 uid="uid://dummxnsurwjro"]
 
-[ext_resource type="Script" path="res://Scripts/Server/ServerNode.cs" id="1_otohx"]
+[ext_resource type="Script" path="res://Scripts/Network/ServerNode.cs" id="1_otohx"]
 [ext_resource type="Texture2D" uid="uid://dt27rhk3cdqrm" path="res://Assets/art/node1.png" id="2_8yeoe"]
 
 [sub_resource type="BoxShape3D" id="BoxShape3D_qktrn"]

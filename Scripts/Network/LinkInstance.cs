@@ -6,12 +6,12 @@ public partial class LinkInstance : InteractableArea3D, IDisposablePoolResource,
 {
     [Export]
     public DebugRender render;
-    public Server.LinkType LinkType = Server.LinkType.Standard;
-    public Server.LinkFlags Flags = Server.LinkFlags.None;
+    public Network.LinkType LinkType = Network.LinkType.Standard;
+    public Network.LinkFlags Flags = Network.LinkFlags.None;
 
     public IDisposablePool Pool { get; set; }
 
-    private Server server;
+    private Network server;
 
     public List<ServerNode> Nodes;
     public List<Vector3> Points => render.Points;
@@ -25,10 +25,10 @@ public partial class LinkInstance : InteractableArea3D, IDisposablePoolResource,
     public string Description()
     {
         string desc = $"Links {Nodes[0].Name()} and {Nodes[1].Name()}. ";
-        foreach (var flag in System.Enum.GetValues(typeof(Server.LinkFlags)))
+        foreach (var flag in System.Enum.GetValues(typeof(Network.LinkFlags)))
         {
-            if ((Server.LinkFlags)flag == Server.LinkFlags.None) continue;
-            if (Flags == (Server.LinkFlags)flag) desc += flag.ToString() + ", ";
+            if ((Network.LinkFlags)flag == Network.LinkFlags.None) continue;
+            if (Flags == (Network.LinkFlags)flag) desc += flag.ToString() + ", ";
         }
         return desc;
     }
@@ -59,7 +59,7 @@ public partial class LinkInstance : InteractableArea3D, IDisposablePoolResource,
     {
     }
 
-    public void Initialise(Server _server, ServerNode[] _nodes)
+    public void Initialise(Network _server, ServerNode[] _nodes)
     {
         server = _server;
         Nodes = new List<ServerNode>(_nodes);
@@ -78,7 +78,7 @@ public partial class LinkInstance : InteractableArea3D, IDisposablePoolResource,
 
     public int GetHeat()
     {
-        return Flags.HasFlag(Server.LinkFlags.Firewall) ? 5 : 0;
+        return Flags.HasFlag(Network.LinkFlags.Firewall) ? 5 : 0;
     }
 
     public int GetCreditsMax()
@@ -152,7 +152,7 @@ public partial class LinkInstance : InteractableArea3D, IDisposablePoolResource,
                 _col = new Color(1.0F, 1.0F, 1.0F);
             }
         }
-        if (Flags == Server.LinkFlags.Firewall)
+        if (Flags == Network.LinkFlags.Firewall)
         {
             _col = new Color(0.0F, 1.0F, 0.0F);
         }
@@ -163,13 +163,13 @@ public partial class LinkInstance : InteractableArea3D, IDisposablePoolResource,
     {
         if (id == "firewall")
         {
-            Flags = Server.LinkFlags.Firewall;
+            Flags = Network.LinkFlags.Firewall;
         }
     }
 
     public bool IsFirewall()
     {
-        return Flags.HasFlag(Server.LinkFlags.Firewall);
+        return Flags.HasFlag(Network.LinkFlags.Firewall);
     }
 
     // public override void SetAsHighlight(bool active)

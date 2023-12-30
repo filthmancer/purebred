@@ -5,8 +5,8 @@ var target_pos;
 var speed = 5;
 var path = []
 var node_current;
-const ServerNode = preload("res://Scripts/Server/ServerNode.cs");
-const LinkInstance = preload("res://Scripts/Server/LinkInstance.cs");
+const ServerNode = preload("res://Scripts/Network/ServerNode.cs");
+const LinkInstance = preload("res://Scripts/Network/LinkInstance.cs");
 
 var node_last;
 # Called when the node enters the scene tree for the first time.

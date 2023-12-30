@@ -19,7 +19,7 @@ public partial class DebugRender : Area3D, IDisposablePoolResource
 	}
 
 	public IDisposablePool Pool { get; set; }
-	public Server.LinkType LinkType = Server.LinkType.Standard;
+	public Network.LinkType LinkType = Network.LinkType.Standard;
 
 	public string Description()
 	{

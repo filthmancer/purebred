@@ -7,9 +7,9 @@ using System.Runtime.CompilerServices;
 using System.Threading.Tasks;
 
 [Tool]
-public partial class Server : Node
+public partial class Network : Node
 {
-    private ServerData serverData;
+    private NetworkData serverData;
 
     public Main main;
 
@@ -238,7 +238,7 @@ public partial class Server : Node
 
     public void RebuildDataFromChildren()
     {
-        serverData = new ServerData();
+        serverData = new NetworkData();
         RebuildNodesFromChildren(ref serverData);
         RebuildLinksFromChildren(ref serverData);
 
@@ -246,7 +246,7 @@ public partial class Server : Node
         Visuals_Update();
         main.EmitGodotSignal(nameof(Main.ServerGenerationComplete), this);
     }
-    private void RebuildNodesFromChildren(ref ServerData data)
+    private void RebuildNodesFromChildren(ref NetworkData data)
     {
         nodeInstances = new Dictionary<int, ServerNode>();
         foreach (var child in GetChildren())
@@ -270,7 +270,7 @@ public partial class Server : Node
         }
         GD.Print("Rebuilding server nodes, node instances: " + nodeInstances.Count);
     }
-    private void RebuildLinksFromChildren(ref ServerData data)
+    private void RebuildLinksFromChildren(ref NetworkData data)
     {
         linkInstances = new Dictionary<int, LinkInstance>();
         var linkDataFromChildren = new List<int[]>();
@@ -465,7 +465,7 @@ public partial class Server : Node
                 Flags = 0
             });
         }
-        ServerData server = new ServerData()
+        NetworkData server = new NetworkData()
         {
             Nodes = nodes,
             Links = links
@@ -479,7 +479,7 @@ public partial class Server : Node
         nodeInstances = new Dictionary<int, ServerNode>();
         linkInstances = new Dictionary<int, LinkInstance>();
 
-        var server = await File.LoadJson<Server.ServerData>(path);
+        var server = await File.LoadJson<Network.NetworkData>(path);
         serverData = server;
 
         UpdatePathfinding();
@@ -510,7 +510,7 @@ public partial class Server : Node
     public enum NodeType { Standard, }
     public enum LinkType { Standard, Fast, Slow }
 
-    public struct ServerData
+    public struct NetworkData
     {
         public List<NodeData> Nodes;
         public List<LinkData> Links;

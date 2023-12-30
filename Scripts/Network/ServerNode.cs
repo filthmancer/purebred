@@ -12,9 +12,9 @@ public partial class ServerNode : InteractableArea3D, IDisposablePoolResource, I
     [Export]
     public Godot.Collections.Array<ServerNode> linked_nodes;
     [Export]
-    public Server.NodeFlags Flags;
+    public Network.NodeFlags Flags;
 
-    public Server.NodeType NodeType = Server.NodeType.Standard;
+    public Network.NodeType NodeType = Network.NodeType.Standard;
 
     [Export]
     public int Heat = 0;
@@ -79,7 +79,7 @@ public partial class ServerNode : InteractableArea3D, IDisposablePoolResource, I
         return "Node";
     }
 
-    private Server server;
+    private Network server;
 
     private static PackedScene prefab;
     public static ServerNode Instantiate(IDisposablePool _pool)
@@ -126,7 +126,7 @@ public partial class ServerNode : InteractableArea3D, IDisposablePoolResource, I
         AddToGroup("ServerNodes", true);
     }
 
-    public void Initialise(Vector3? _pos, Server _server)
+    public void Initialise(Vector3? _pos, Network _server)
     {
         Position = _pos ?? Position;
         server = _server;

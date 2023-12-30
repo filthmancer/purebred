@@ -1,6 +1,6 @@
 [gd_scene load_steps=3 format=3 uid="uid://c2iwn3pjkyodl"]
 
-[ext_resource type="Script" path="res://Scripts/Server/Server.cs" id="1_edfxn"]
+[ext_resource type="Script" path="res://Scripts/Network/Network.cs" id="1_edfxn"]
 [ext_resource type="PackedScene" uid="uid://dummxnsurwjro" path="res://scenes/ServerNode.tscn" id="2_6448p"]
 
 [node name="serverc" type="Node"]

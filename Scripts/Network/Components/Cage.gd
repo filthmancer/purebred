@@ -1,4 +1,4 @@
-extends "res://Scripts/Server/Components/ServerComponent.gd"
+extends "res://Scripts/Network/Components/ServerComponent.gd"
 
 
 @export var durability_decrease_per_tick = 0.2
