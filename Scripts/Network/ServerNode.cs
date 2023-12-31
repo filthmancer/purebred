@@ -18,12 +18,24 @@ public partial class ServerNode : InteractableArea3D, IDisposablePoolResource, I
 
     [Export]
     public int Heat = 0;
+    [Export]
+    public int HeatMax_initial = 20;
+    public int HeatMax;
+    public int HeatMax_components = 0;
 
     [Export]
-    public int DataMax = 0;
+    public int Credits = 0;
+    [Export]
+    public int CreditsMax = 500;
+    private int CreditsMax_components = 0;
 
     [Export]
-    public int CreditsMax = 0;
+    public int Data = 0;
+    [Export]
+    public int DataMax = 100;
+    private int DataMax_components = 0;
+
+    private float Credits_thisTick, Data_thisTick;
 
     [Export]
     public bool LinkNodes
@@ -52,6 +64,8 @@ public partial class ServerNode : InteractableArea3D, IDisposablePoolResource, I
     public int ComponentMax = 1;
     public List<Node3D> components = new List<Node3D>();
 
+    public List<Node3D> creditObjects = new List<Node3D>();
+
 
     public string Description()
     {
@@ -61,11 +75,10 @@ public partial class ServerNode : InteractableArea3D, IDisposablePoolResource, I
         //     if ((Server.NodeFlags)flag == Server.NodeFlags.None) continue;
         //     if (Flags == (Server.NodeFlags)flag) desc += flag.ToString() + ", ";
         // }
+        desc += $"HEAT: {Heat}\\{HeatMax}\n";
 
-        foreach (var component in components)
-        {
-            desc += component.Call("Name").ToString() + ", ";
-        }
+        desc += $"CR: {Credits}\\{CreditsMax}\n";
+        desc += $"DT: {Data}\\{DataMax}\n";
         return desc;
     }
 
@@ -131,6 +144,15 @@ public partial class ServerNode : InteractableArea3D, IDisposablePoolResource, I
         Position = _pos ?? Position;
         server = _server;
         server.main.OnTick += OnTick;
+
+        foreach (var node in GetChildren(true))
+        {
+            if (node.Call("is_component").AsBool())
+            {
+                node.Call("initialise", this);
+                components.Add(node as Node3D);
+            }
+        }
     }
 
     public void SetColor(Color col)
@@ -140,17 +162,51 @@ public partial class ServerNode : InteractableArea3D, IDisposablePoolResource, I
 
     public void OnTick()
     {
+        Credits = Math.Clamp(Credits + (int)Credits_thisTick, 0, GetCreditsMax());
+        Data = Math.Clamp(Data + (int)Data_thisTick, 0, GetDataMax());
+        UpdateHeat();
+        Credits_thisTick = 0;
+        Data_thisTick = 0;
 
+        UpdateCreditObjects();
     }
 
-    public int GetHeat()
+    private void UpdateCreditObjects()
     {
-        var total = Heat;
+        int creditsObjsRequired = (int)(Credits / 10) + 1;
+        var creditPrefab = GD.Load<PackedScene>(AssetPaths.Credits);
+        while (creditsObjsRequired > creditObjects.Count)
+        {
+            var creditInstance = creditPrefab.Instantiate<Node3D>();
+            var x = -0.6F + creditObjects.Count % 5 * 0.3F;
+            var z = -0.6F + creditObjects.Count / 5 * 0.3F;
+            var vec = new Vector3(x, 0, z);
+            creditInstance.Position = vec;
+            AddChild(creditInstance);
+            creditObjects.Add(creditInstance);
+        }
+        while (creditObjects.Count > creditsObjsRequired)
+        {
+            var obj = creditObjects.Last();
+            obj.QueueFree();
+            creditObjects.Remove(obj);
+        }
+        if (creditObjects.Count > 0)
+        {
+            creditObjects.Last().Scale = new Vector3(1, (float)(Credits % 10 / 10F), 1);
+        }
+    }
+
+    public void UpdateHeat()
+    {
+        Heat = 0;
+        HeatMax = HeatMax_initial;
         foreach (var comp in components)
         {
-            total += comp.Call("get_heat").As<int>();
+            Heat += comp.Call("get_heat").As<int>();
+            HeatMax += comp.Call("get_heatmax").As<int>();
         }
-        return total;
+        Heat = Math.Clamp(Heat, 0, HeatMax);
     }
 
     public int GetDataMax()
@@ -207,7 +263,7 @@ public partial class ServerNode : InteractableArea3D, IDisposablePoolResource, I
 
 
         // Attempts to purchase the item
-        if (!server.main.PurchaseItem(id))
+        if (!server.main.PurchaseItem(id, this))
             return false;
 
         var component = server.Visuals_GenerateComponent(id);
@@ -218,7 +274,6 @@ public partial class ServerNode : InteractableArea3D, IDisposablePoolResource, I
         }
         component.Position = Vector3.Zero;
         component.Call("initialise", this);
-        //component.Set("nodeinstance", this);
 
         AddChild(component);
         components.Add(component);
@@ -249,8 +304,19 @@ public partial class ServerNode : InteractableArea3D, IDisposablePoolResource, I
         return components.Find(n => n.Get("ID").ToString() == id) != null;
     }
 
+
+    #region Currency
     public void GainResource(string type, float amount, Node cause)
     {
-        server.GainResource(type, amount, cause);
+        switch (type)
+        {
+            case "credits":
+                Credits_thisTick += amount;
+                break;
+            case "data":
+                Data_thisTick += amount;
+                break;
+        }
     }
+    #endregion
 }

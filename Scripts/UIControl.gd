@@ -13,9 +13,8 @@ var callable_is_node_instance;
 var callable_is_link_instance;
 var callable_node_has_no_components;
 
-var highlight_interactable = null;
-var selected_interactable = null;
 var highlight_components = []
+var target; 
 # Called when the node enters the scene tree for the first time.
 func _ready():
 	
@@ -45,6 +44,7 @@ func _process(delta):
 	$credits.set_text("CR: " + str(server.Credits) + " / " + str(server.CreditsMax()));
 	$data.set_text("D: " + str(server.Data) + " / " + str(server.DataMax()))
 	$heat.set_text(str(server.Heat) + "/" + str(server.HeatMax));
+	update_highlight_description(server.interactable_highlighted);
 	pass
 	
 func get_server(_server):
@@ -61,6 +61,7 @@ func create_actionbutton(id, _func_select, _func_visibility, icon):
 	button.hide();
 	
 func update_highlight_description(node):
+
 	if node == null:
 		exit_highlight(node);
 	else:

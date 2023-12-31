@@ -1,4 +1,4 @@
-extends Node
+extends Area3D
 
 @export var durability = 10;
 var durability_initial;
@@ -55,3 +55,5 @@ func get_node_components():
 			
 	return node_components;
 	
+func is_component():
+	return true;

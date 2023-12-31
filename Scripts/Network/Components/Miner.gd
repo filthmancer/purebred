@@ -5,7 +5,7 @@ const Miner = preload("res://Scripts/Network/Components/Miner.gd")
 @export var neighbour_multiplier = 0.2;
 var active_mine_rate = 1;
 func Name():
-	return "Crypto Miner";
+	return "Crypto Miner: " + str(durability);
 	
 func Description():
 	return "Heat: " + str(get_heat()) + "\nCredits/sec: " + str(active_mine_rate);

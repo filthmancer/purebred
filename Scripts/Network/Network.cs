@@ -38,23 +38,20 @@ public partial class Network : Node
     public Dictionary<int, LinkInstance> linkInstances = new Dictionary<int, LinkInstance>();
 
     public int Heat = 0;
-    private int Heat_components = 0;
+    private int Heat_nodes = 0;
     public int HeatMax = 50;
-    private int HeatMax_components = 0;
     public float TickRate = 1.0F;
     private float TickRate_last = 0.0F;
 
-
-
     public int Credits = 1000;
-    public int CreditsMax() { return 2000 + CreditsMax_components; }
-    private int CreditsMax_components = 0;
+    public int CreditsMax() { return CreditsMax_nodes; }
+    private int CreditsMax_nodes = 0;
 
     public int Data = 0;
-    public int DataMax() { return 100 + DataMax_components; }
-    private int DataMax_components = 0;
+    public int DataMax() { return DataMax_nodes; }
+    private int DataMax_nodes = 0;
 
-    private float Credits_thisTick, Data_thisTick;
+    //private float Credits_thisTick, Data_thisTick;
 
     private InteractableArea3D interactable_highlighted;
     public InteractableArea3D interactable_selected { get; private set; }
@@ -74,29 +71,30 @@ public partial class Network : Node
             main.EmitGodotSignal(nameof(Main.OnTick));
 
             /// Heat from components
-            Heat_components = 0;
-            CreditsMax_components = 0;
-            DataMax_components = 0;
+            Heat_nodes = 0;
+            CreditsMax_nodes = 0;
+            DataMax_nodes = 0;
+            Credits = 0;
+            Data = 0;
             foreach (var node in nodeInstances.Values)
             {
-                Heat_components += node.GetHeat();
-                CreditsMax_components += node.GetCreditsMax();
-                DataMax_components += node.GetCreditsMax();
+                Heat_nodes += node.Heat;
+                CreditsMax_nodes += node.GetCreditsMax();
+                DataMax_nodes += node.GetDataMax();
+                Data += node.Data;
+                Credits += node.Credits;
             }
 
             foreach (var link in linkInstances.Values)
             {
-                Heat_components += link.GetHeat();
-                CreditsMax_components += link.GetCreditsMax();
-                DataMax_components += link.GetDataMax();
+                Heat_nodes += link.GetHeat();
+                CreditsMax_nodes += link.GetCreditsMax();
+                DataMax_nodes += link.GetDataMax();
             }
 
-            Heat = Math.Max(Heat_components, 0);
-            Credits = Math.Clamp(Credits + (int)Credits_thisTick, 0, CreditsMax());
-            Data = Math.Clamp(Data + (int)Data_thisTick, 0, DataMax());
-
-            Credits_thisTick = 0;
-            Data_thisTick = 0;
+            Heat = Math.Max(Heat_nodes, 0);
+            Credits = Math.Clamp(Credits, 0, CreditsMax());
+            Data = Math.Clamp(Data, 0, DataMax());
         }
     }
     public override void _UnhandledInput(InputEvent @event)
@@ -256,7 +254,7 @@ public partial class Network : Node
 
             ServerNode node = child as ServerNode;
             nodeInstances[node.ID] = node;
-            node.Initialise(null, this);
+            //node.Initialise(null, this);
         }
         data.Nodes = new List<NodeData>();
         for (int i = 0; i < nodeInstances.Count; i++)
@@ -341,20 +339,6 @@ public partial class Network : Node
         return nodeInstances[main.rng.RandiRange(0, nodeInstances.Count - 1)];
     }
 
-    #region Currency
-    public void GainResource(string type, float amount, Node cause)
-    {
-        switch (type)
-        {
-            case "credits":
-                Credits_thisTick += amount;
-                break;
-            case "data":
-                Data_thisTick += amount;
-                break;
-        }
-    }
-    #endregion
 
     #region Pathfinding
     private void UpdatePathfinding()

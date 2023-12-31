@@ -10,6 +10,7 @@ size = Vector3(1, 0.573971, 1)
 transform = Transform3D(2, 0, 0, 0, 2, 0, 0, 0, 2, 0, 0, 0)
 script = ExtResource("1_otohx")
 linked_nodes = []
+CreditsMax = 200
 
 [node name="Sprite" type="Sprite3D" parent="."]
 transform = Transform3D(4, 0, 0, 0, -1.74846e-07, -4, 0, 4, -1.74846e-07, 0, -0.0524892, 0)

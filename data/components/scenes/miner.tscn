@@ -1,4 +1,4 @@
-[gd_scene load_steps=5 format=3 uid="uid://d0v0fciug0wey"]
+[gd_scene load_steps=7 format=3 uid="uid://d0v0fciug0wey"]
 
 [ext_resource type="Script" path="res://Scripts/Network/Components/Miner.gd" id="1_2s77m"]
 [ext_resource type="Texture2D" uid="uid://dle1aj6mno21l" path="res://Assets/art/wenrexa/СommonElement/Icon03.png" id="2_wl1d3"]
@@ -6,6 +6,14 @@
 
 [sub_resource type="BoxShape3D" id="BoxShape3D_4tviy"]
 size = Vector3(1, 0.173235, 1)
+
+[sub_resource type="StandardMaterial3D" id="StandardMaterial3D_lcxhh"]
+render_priority = 55
+transparency = 1
+shading_mode = 0
+albedo_color = Color(0, 0, 0.670588, 1)
+
+[sub_resource type="CylinderMesh" id="CylinderMesh_s7bht"]
 
 [node name="miner" type="Area3D"]
 transform = Transform3D(0.5, 0, 0, 0, 0.5, 0, 0, 0, 0.5, 0, 0, 0)
@@ -19,6 +27,7 @@ disabled = true
 
 [node name="Sprite3D" type="Sprite3D" parent="."]
 transform = Transform3D(5, 0, 0, 0, -2.18557e-07, -5, 0, 5, -2.18557e-07, 0, 0, 0)
+visible = false
 render_priority = 51
 texture = ExtResource("2_wl1d3")
 
@@ -26,3 +35,8 @@ texture = ExtResource("2_wl1d3")
 transform = Transform3D(4.94975, 0.20279, 0.579228, 0, 0.409576, -0.573576, -4.94975, 0.20279, 0.579228, 0.231585, 0.526793, 0.230824)
 render_priority = 51
 texture = ExtResource("3_u3fg0")
+
+[node name="MeshInstance3D" type="MeshInstance3D" parent="."]
+transform = Transform3D(1.58116, 0, 0, 0, 0.3239, 0, 0, 0, 1.58116, 0, 0, 0)
+material_override = SubResource("StandardMaterial3D_lcxhh")
+mesh = SubResource("CylinderMesh_s7bht")

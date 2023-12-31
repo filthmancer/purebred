@@ -1,6 +1,7 @@
 using Godot;
 using System;
 using System.Collections.Generic;
+using System.Linq;
 
 public partial class Main : Node3D
 {
@@ -78,7 +79,7 @@ public partial class Main : Node3D
     }
     private void SetupActor(Network s)
     {
-        actorInstance = s.Visuals_Virus(s.nodeInstances[0]);
+        //actorInstance = s.Visuals_Virus(s.nodeInstances[0]);
     }
 
     public bool EmitGodotSignal(string name, params Godot.Variant[] args)
@@ -112,15 +113,59 @@ public partial class Main : Node3D
         return false;
     }
 
-    public bool PurchaseItem(string id)
+    public bool PurchaseItem(string id, ServerNode node)
     {
         if (!serverComponents.ContainsKey(id))
             return false;
 
-        if (server.Credits < serverComponents[id].cost)
+        int cost = serverComponents[id].cost;
+        if (server.Credits < cost)
             return false;
 
-        server.Credits -= serverComponents[id].cost;
+        int SubtractFromPool(ref int pool, int amount)
+        {
+            int sub = Math.Min(amount, pool);
+            pool -= sub;
+            return amount - sub;
+        }
+
+        Dictionary<int, int> subtractedAmounts = new Dictionary<int, int>();
+        int leftover = node.Credits;
+        int ID = node.ID;
+        int remaining = cost;
+        do
+        {
+            node = server.nodeInstances[ID];
+            leftover = node.Credits;
+            // GD.Print($"Subtracting {remaining} from {node.Name()}, {leftover}");
+            remaining = SubtractFromPool(ref leftover, remaining);
+            // GD.Print($"{remaining} cost remaining, {leftover} leftover on {node.Name()}");
+            subtractedAmounts[ID] = node.Credits - leftover;
+            if (remaining > 0)
+            {
+                var nbours = node.GetNeighbours();
+                var nextNode = nbours.FirstOrDefault(n => n.Credits > 0 && !subtractedAmounts.ContainsKey(n.ID));
+                if (nextNode == null)
+                    nextNode = nbours.FirstOrDefault(n => !subtractedAmounts.ContainsKey(n.ID));
+                if (nextNode == null)
+                    nextNode = server.nodeInstances.FirstOrDefault(n => !subtractedAmounts.ContainsKey(n.Key)).Value;
+
+                ID = nextNode.ID;
+            }
+        }
+        while (remaining > 0);
+
+        if (remaining > 0)
+        {
+            return false;
+        }
+
+        foreach (var sub in subtractedAmounts)
+        {
+            server.nodeInstances[sub.Key].Credits -= sub.Value;
+        }
+        server.Credits -= cost;
+
         return true;
     }
 
@@ -184,4 +229,6 @@ public static class AssetPaths
     public const string Virus = "res://scenes/virus.tscn";
     public const string Servers = "servers";
     public const string Components = "components";
+
+    public const string Credits = "res://data/CreditChunk.tscn";
 }
