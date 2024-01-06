@@ -32,7 +32,8 @@ func _ready():
 	create_actionbutton("build_cage", component_button_press, callable_is_node_instance, "res://Assets/art/wenrexa/СommonElement/Icon02.png");
 	create_actionbutton("build_miner", miner_button_press, callable_is_node_instance, "res://Assets/art/wenrexa/СommonElement/Icon03.png");
 	create_actionbutton("build_heatsink", heatsink_button_press, callable_is_node_instance, "res://Assets/art/wenrexa/СommonElement/Icon04.png");
-	create_actionbutton("move_allies", move_button_press, callable_is_node_instance, "res://Assets/art/wenrexa/СommonElement/Icon01.png");
+	create_actionbutton("build_wallet", wallet_button_press, callable_is_node_instance, "res://Assets/art/wenrexa/СommonElement/Icon01.png");
+	#create_actionbutton("move_allies", move_button_press, callable_is_node_instance, "res://Assets/art/wenrexa/СommonElement/Icon01.png");
 	create_actionbutton("build_firewall", firewall_button_press, callable_is_link_instance, "res://Assets/art/wenrexa/СommonElement/Icon05.png");
 	pass # Replace with function body.
 
@@ -145,3 +146,7 @@ func firewall_button_press():
 func heatsink_button_press():
 	if server.interactable_selected != null:
 		server.interactable_selected.BuildComponent("heatsink");
+		
+func wallet_button_press():
+	if server.interactable_selected != null:
+		server.interactable_selected.BuildComponent("wallet");

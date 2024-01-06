@@ -77,8 +77,8 @@ public partial class ServerNode : InteractableArea3D, IDisposablePoolResource, I
         // }
         desc += $"HEAT: {Heat}\\{HeatMax}\n";
 
-        desc += $"CR: {Credits}\\{CreditsMax}\n";
-        desc += $"DT: {Data}\\{DataMax}\n";
+        desc += $"CR: {Credits}\\{GetCreditsMax()}\n";
+        desc += $"DT: {Data}\\{GetDataMax()}\n";
         return desc;
     }
 
@@ -177,10 +177,16 @@ public partial class ServerNode : InteractableArea3D, IDisposablePoolResource, I
         var creditPrefab = GD.Load<PackedScene>(AssetPaths.Credits);
         while (creditsObjsRequired > creditObjects.Count)
         {
+            if (creditObjects.Count > 0)
+                creditObjects.Last().Scale = Vector3.One;
+
             var creditInstance = creditPrefab.Instantiate<Node3D>();
             var x = -0.6F + creditObjects.Count % 5 * 0.3F;
-            var z = -0.6F + creditObjects.Count / 5 * 0.3F;
-            var vec = new Vector3(x, 0, z);
+            var z_offset = -0.6F + (int)(creditObjects.Count / 25) * -1.5F;
+            var z = z_offset + creditObjects.Count / 5 * 0.3F;
+            var y = (int)(creditObjects.Count / 25) * 0.3F;
+
+            var vec = new Vector3(x, y, z);
             creditInstance.Position = vec;
             AddChild(creditInstance);
             creditObjects.Add(creditInstance);

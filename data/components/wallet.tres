@@ -1,0 +1,10 @@
+[gd_resource type="Resource" load_steps=3 format=3 uid="uid://drbrslo5isbe4"]
+
+[ext_resource type="PackedScene" uid="uid://basykodf3h8cr" path="res://data/components/scenes/wallet.tscn" id="1_dxgt7"]
+[ext_resource type="Script" path="res://Scripts/Data/RComponent.cs" id="1_yr41f"]
+
+[resource]
+script = ExtResource("1_yr41f")
+ID = "wallet"
+packedScene = ExtResource("1_dxgt7")
+cost = 200

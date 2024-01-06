@@ -10,26 +10,22 @@ script = ExtResource("1_edfxn")
 [node name="NODE - 0" parent="." node_paths=PackedStringArray("linked_nodes") instance=ExtResource("2_6448p")]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -3.84061, 0.261352, -5.90466)
 linked_nodes = [NodePath("../NODE - 6")]
-CreditsMax = 200
 
 [node name="NODE - 6" parent="." node_paths=PackedStringArray("linked_nodes") instance=ExtResource("2_6448p")]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -7.84061, 0.261352, 0.0953398)
 ID = 1
 linked_nodes = [NodePath("../NODE - 0"), NodePath("../NODE - 5")]
-CreditsMax = 200
 
 [node name="NODE - 7" parent="." node_paths=PackedStringArray("linked_nodes") instance=ExtResource("2_6448p")]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 8.15939, 0.261352, 0.0953398)
 ID = 2
 linked_nodes = [NodePath("../NODE - 8")]
 Credits = 300
-CreditsMax = 200
 
 [node name="NODE - 8" parent="." node_paths=PackedStringArray("linked_nodes") instance=ExtResource("2_6448p")]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 4, 2.08165e-12, -6)
 ID = 3
 linked_nodes = [NodePath("../NODE - 7"), NodePath("../NODE - 11")]
-CreditsMax = 200
 
 [node name="miner" parent="NODE - 8" instance=ExtResource("3_ge168")]
 
@@ -37,7 +33,6 @@ CreditsMax = 200
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 4, 0.261, 6.095)
 ID = 4
 linked_nodes = [NodePath("../NODE - 10"), NodePath("../NODE - 11"), NodePath("../NODE - 7")]
-CreditsMax = 200
 
 [node name="miner2" parent="NODE - 9" instance=ExtResource("3_ge168")]
 
@@ -45,16 +40,13 @@ CreditsMax = 200
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -4, 0.261, 6.095)
 ID = 5
 linked_nodes = [NodePath("../NODE - 10"), NodePath("../NODE - 11"), NodePath("../NODE - 6")]
-CreditsMax = 200
 
 [node name="NODE - 10" parent="." node_paths=PackedStringArray("linked_nodes") instance=ExtResource("2_6448p")]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 2.08165e-12, 0.261, 6.095)
 ID = 6
 linked_nodes = [NodePath("../NODE - 9")]
-CreditsMax = 200
 
 [node name="NODE - 11" parent="." node_paths=PackedStringArray("linked_nodes") instance=ExtResource("2_6448p")]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 2.08165e-12, 2.08165e-12, 0)
 ID = 7
 linked_nodes = [NodePath("../NODE - 9"), NodePath("../NODE - 0"), NodePath("../NODE - 8")]
-CreditsMax = 200
