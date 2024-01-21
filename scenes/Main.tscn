@@ -21,6 +21,7 @@ sky_custom_fov = 90.0
 [node name="Main" type="Node3D" node_paths=PackedStringArray("mainCamera")]
 script = ExtResource("1_c6i6j")
 mainCamera = NodePath("CamParent/Camera3D")
+keyboardCameraSpeed = 5.0
 
 [node name="UI" type="Control" parent="."]
 layout_mode = 3

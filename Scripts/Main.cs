@@ -9,6 +9,8 @@ public partial class Main : Node3D
     public Network server;
     [Export]
     public Camera3D mainCamera;
+    [Export]
+    public float keyboardCameraSpeed = 1;
     private Node3D actorInstance;
 
     public RandomNumberGenerator rng = new RandomNumberGenerator();
@@ -37,20 +39,42 @@ public partial class Main : Node3D
 
     private Node3D cam_parent;
     private readonly Vector2 mainCamera_zoomThreshold = new Vector2(5, 30);
+    private Vector3 _input_velocity, _applied_velocity;
+
+    //* Panning has less effect the smaller the camera size is
+    float zoomFactor => Math.Clamp(1 - mainCamera_zoomThreshold.X / mainCamera.Size, 0.1F, 2);
     public override void _UnhandledInput(InputEvent @event)
     {
+        Vector3 pos = cam_parent.Position;
+
         if (@event is InputEventMagnifyGesture magnifyGesture)
         {
             mainCamera.Size = Math.Clamp(mainCamera.Size * magnifyGesture.Factor, mainCamera_zoomThreshold.X, mainCamera_zoomThreshold.Y);
         }
         else if (@event is InputEventPanGesture panGesture)
         {
-            //* Panning has less effect the smaller the camera size is
-            float zoomFactor = Math.Clamp(1 - mainCamera_zoomThreshold.X / mainCamera.Size, 0.1F, 2);
-            Vector3 pos = cam_parent.Position;
             pos += cam_parent.Basis.X * (panGesture.Delta.X * zoomFactor);
             pos += cam_parent.Basis.Z * (panGesture.Delta.Y * zoomFactor);
-            cam_parent.Position = pos;
+        }
+        else if (@event is InputEventKey key)
+        {
+            /* if (key.IsAction("cam_right"))
+            {
+                _input_velocity = cam_parent.Basis.X * (-keyboardCameraSpeed * zoomFactor);
+                // pos += cam_parent.Basis.X * (keyboardCameraSpeed * zoomFactor);
+            }
+            else if (key.IsAction("cam_left"))
+            {
+                _input_velocity = cam_parent.Basis.X * (keyboardCameraSpeed * zoomFactor);
+            }
+            else if (key.IsAction("cam_up"))
+            {
+                _input_velocity = cam_parent.Basis.Z * (keyboardCameraSpeed * zoomFactor);
+            }
+            else if (key.IsAction("cam_down"))
+            {
+                _input_velocity = cam_parent.Basis.Z * (-keyboardCameraSpeed * zoomFactor);
+            } */
         }
     }
 
@@ -70,12 +94,50 @@ public partial class Main : Node3D
             serverComponents[component.ID] = component;
         }
 
-        LoadServer("server_a");
+        LoadServer("server_c");
     }
 
     public override void _Process(double delta)
     {
 
+        var newInput = new Vector3();
+        if (Input.IsActionPressed("cam_right"))
+        {
+            newInput += -cam_parent.Basis.X;
+        }
+        if (Input.IsActionPressed("cam_left"))
+        {
+            newInput += cam_parent.Basis.X;
+        }
+        if (Input.IsActionPressed("cam_up"))
+        {
+            newInput += cam_parent.Basis.Z;
+        }
+        if (Input.IsActionPressed("cam_down"))
+        {
+            newInput += -cam_parent.Basis.Z;
+        }
+        if (newInput == Vector3.Zero)
+            _input_velocity = Vector3.Zero;
+        else _input_velocity += newInput;
+
+        _input_velocity = _input_velocity.Normalized();
+
+        if (_input_velocity == Vector3.Zero)
+        {
+            _applied_velocity *= 0.98F;
+            if (_applied_velocity.Length() < 0.01F) _applied_velocity = Vector3.Zero;
+        }
+
+        _applied_velocity += _input_velocity * (float)delta * zoomFactor;
+        _applied_velocity.X = Math.Clamp(_applied_velocity.X, -keyboardCameraSpeed, keyboardCameraSpeed);
+        _applied_velocity.Z = Math.Clamp(_applied_velocity.Z, -keyboardCameraSpeed, keyboardCameraSpeed);
+
+        GD.Print("input: ", _input_velocity, " applied: ", _applied_velocity.Length());
+
+        Vector3 pos = cam_parent.Position;
+        pos += _applied_velocity;
+        cam_parent.Position = pos;
     }
     private void SetupActor(Network s)
     {
