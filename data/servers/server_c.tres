@@ -1,0 +1,10 @@
+[gd_resource type="Resource" script_class="RServer" load_steps=3 format=3 uid="uid://o123xl3eq2if"]
+
+[ext_resource type="PackedScene" uid="uid://gf3rvw6or8kt" path="res://data/servers/scenes/server_c.tscn" id="1_1r5o8"]
+[ext_resource type="Script" path="res://Scripts/Data/RServer.cs" id="2_sascv"]
+
+[resource]
+script = ExtResource("2_sascv")
+ID = "server_c"
+packedScene = ExtResource("1_1r5o8")
+cost = 3000
