@@ -56,26 +56,6 @@ public partial class Main : Node3D
             pos += cam_parent.Basis.X * (panGesture.Delta.X * zoomFactor);
             pos += cam_parent.Basis.Z * (panGesture.Delta.Y * zoomFactor);
         }
-        else if (@event is InputEventKey key)
-        {
-            /* if (key.IsAction("cam_right"))
-            {
-                _input_velocity = cam_parent.Basis.X * (-keyboardCameraSpeed * zoomFactor);
-                // pos += cam_parent.Basis.X * (keyboardCameraSpeed * zoomFactor);
-            }
-            else if (key.IsAction("cam_left"))
-            {
-                _input_velocity = cam_parent.Basis.X * (keyboardCameraSpeed * zoomFactor);
-            }
-            else if (key.IsAction("cam_up"))
-            {
-                _input_velocity = cam_parent.Basis.Z * (keyboardCameraSpeed * zoomFactor);
-            }
-            else if (key.IsAction("cam_down"))
-            {
-                _input_velocity = cam_parent.Basis.Z * (-keyboardCameraSpeed * zoomFactor);
-            } */
-        }
     }
 
     public override void _Ready()
@@ -99,6 +79,12 @@ public partial class Main : Node3D
 
     public override void _Process(double delta)
     {
+        ProcessCameraInput(delta);
+        ProcessFocusTarget(delta);
+    }
+
+    private void ProcessCameraInput(double delta)
+    {
 
         var newInput = new Vector3();
         if (Input.IsActionPressed("cam_right"))
@@ -119,29 +105,69 @@ public partial class Main : Node3D
         }
         if (newInput == Vector3.Zero)
             _input_velocity = Vector3.Zero;
-        else _input_velocity += newInput;
+        else
+        {
+            _input_velocity += newInput;
+            isTargeting = false;
+        }
 
         _input_velocity = _input_velocity.Normalized();
 
         if (_input_velocity == Vector3.Zero)
         {
-            _applied_velocity *= 0.98F;
-            if (_applied_velocity.Length() < 0.01F) _applied_velocity = Vector3.Zero;
+            _applied_velocity *= 0.92F;
+            if (_applied_velocity.Length() < 0.001F) _applied_velocity = Vector3.Zero;
         }
 
-        _applied_velocity += _input_velocity * (float)delta * zoomFactor;
-        _applied_velocity.X = Math.Clamp(_applied_velocity.X, -keyboardCameraSpeed, keyboardCameraSpeed);
-        _applied_velocity.Z = Math.Clamp(_applied_velocity.Z, -keyboardCameraSpeed, keyboardCameraSpeed);
-
-        GD.Print("input: ", _input_velocity, " applied: ", _applied_velocity.Length());
+        _applied_velocity = _input_velocity * keyboardCameraSpeed * (float)delta * zoomFactor;
 
         Vector3 pos = cam_parent.Position;
         pos += _applied_velocity;
+
+        pos.X = Math.Clamp(pos.X, -10, 10);
+        pos.Z = Math.Clamp(pos.Z, -10, 10);
         cam_parent.Position = pos;
     }
+
+    private bool isTargeting = false;
+    private Node3D target;
+    private Vector3 targeting_startingPosition;
+    private float targeting_time = 0.0F;
+    private void ProcessFocusTarget(double delta)
+    {
+        if (server.interactable_selected != null)
+        {
+            if (server.interactable_selected != target)
+            {
+                isTargeting = false;
+            }
+            if (Input.IsActionJustPressed("focus"))
+            {
+                isTargeting = true;
+                target = server.interactable_selected;
+                targeting_startingPosition = cam_parent.Position;
+                targeting_time = 0F;
+            }
+        }
+        else
+            isTargeting = false;
+
+        if (isTargeting)
+        {
+            var position = (server.interactable_selected is InteractableActor) ? (server.interactable_selected.GetParent() as Node3D).Position :
+                                                                                server.interactable_selected.Position;
+
+            targeting_time = Math.Clamp(targeting_time + (float)delta * 4, 0F, 1F);
+
+            if (cam_parent.Position.DistanceTo(position) > 0.5F)
+                cam_parent.Position = targeting_startingPosition.Lerp(position, targeting_time);
+            else cam_parent.Position = position;
+        }
+    }
+
     private void SetupActor(Network s)
     {
-        //actorInstance = s.Visuals_Virus(s.nodeInstances[0]);
+        actorInstance = s.Visuals_Virus(s.nodeInstances[0]);
     }
 
     public bool EmitGodotSignal(string name, params Godot.Variant[] args)
