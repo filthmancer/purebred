@@ -2,6 +2,7 @@ using Godot;
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Threading.Tasks;
 [Tool]
 [GlobalClass]
 public partial class ServerNode : InteractableArea3D, IDisposablePoolResource, IDescribableNode
@@ -36,6 +37,7 @@ public partial class ServerNode : InteractableArea3D, IDisposablePoolResource, I
     private int DataMax_components = 0;
 
     private float Credits_thisTick, Data_thisTick;
+    private Dictionary<int, float> Credits_thisTick_transferred = new Dictionary<int, float>();
 
     [Export]
     public bool LinkNodes
@@ -168,7 +170,13 @@ public partial class ServerNode : InteractableArea3D, IDisposablePoolResource, I
         Credits_thisTick = 0;
         Data_thisTick = 0;
 
+        foreach (var transfer in Credits_thisTick_transferred)
+        {
+            Credits_thisTick += transfer.Value;
+        }
+
         UpdateCreditObjects();
+        Credits_thisTick_transferred.Clear();
     }
 
     private void UpdateCreditObjects()
@@ -201,6 +209,48 @@ public partial class ServerNode : InteractableArea3D, IDisposablePoolResource, I
         {
             creditObjects.Last().Scale = new Vector3(1, (float)(Credits % 10 / 10F), 1);
         }
+
+
+        foreach (var transfer in Credits_thisTick_transferred)
+        {
+            MoveResourceBetweenNodes("credits", (int)transfer.Value, server.nodeInstances[transfer.Key], this);
+        }
+    }
+
+    private static void MoveResourceBetweenNodes(string resource, int transfer, ServerNode start, ServerNode end)
+    {
+        var prefab = GD.Load<PackedScene>(AssetPaths.Credits);
+        switch (resource)
+        {
+            case "credits":
+                prefab = GD.Load<PackedScene>(AssetPaths.Credits);
+                break;
+            case "data":
+
+                break;
+        }
+        var objsRequired = (int)(transfer / 10) + 1;
+        for (int i = 0; i < objsRequired; i++)
+        {
+            var instance = prefab.Instantiate<Node3D>();
+            start.AddChild(instance);
+            instance.GlobalPosition = start.GlobalPosition;
+            var startingPosition = instance.GlobalPosition;
+            var endingPosition = end.GlobalPosition;
+            Task.Run(async () => await MoveObjectTo(startingPosition, endingPosition, instance));
+        }
+    }
+
+    private static async Task MoveObjectTo(Vector3 startingPosition, Vector3 endingPosition, Node3D instance)
+    {
+        float t = 0.0F;
+        while (t < 1)
+        {
+            t += 0.01F;
+            instance.CallDeferred("set_global_position", startingPosition.Lerp(endingPosition, t));
+            await Task.Delay(10);
+        }
+        instance.CallDeferred("free");
     }
 
     public void UpdateHeat()
@@ -321,6 +371,21 @@ public partial class ServerNode : InteractableArea3D, IDisposablePoolResource, I
                 break;
             case "data":
                 Data_thisTick += amount;
+                break;
+        }
+    }
+
+    public void TransferResource(string type, int amount, ServerNode from)
+    {
+        switch (type)
+        {
+            case "credits":
+                if (!Credits_thisTick_transferred.ContainsKey(from.ID)) Credits_thisTick_transferred[from.ID] = 0;
+                Credits_thisTick_transferred[from.ID] += amount;
+                from.Credits = Math.Clamp(from.Credits - amount, 0, from.GetCreditsMax());
+                break;
+            case "data":
+                //Data_thisTick_transferred[from.ID] += amount;
                 break;
         }
     }

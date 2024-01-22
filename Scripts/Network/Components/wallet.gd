@@ -22,8 +22,7 @@ func on_tick():
 				if comp is Wallet:
 					return;
 			var routedCredits = min(creditsRouteRate, nbour.Credits);
-			nbour.Credits = clamp(nbour.Credits - routedCredits, 0, nbour.GetCreditsMax());
-			nodeInstance.Credits += routedCredits;
+			nodeInstance.TransferResource("credits", routedCredits, nbour);
 			
 
 
