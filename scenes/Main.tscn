@@ -34,6 +34,7 @@ mouse_filter = 1
 script = ExtResource("4_4tntm")
 
 [node name="description_box" type="NinePatchRect" parent="UI"]
+visible = false
 layout_mode = 2
 anchor_top = 0.831741
 anchor_right = 0.104938
@@ -124,6 +125,123 @@ text = "Heat Sink"
 scroll_active = false
 autowrap_mode = 0
 metadata/_edit_use_anchors_ = true
+
+[node name="tooltip" type="NinePatchRect" parent="UI"]
+z_index = 5
+layout_mode = 2
+anchor_left = 0.2076
+anchor_top = 0.487908
+anchor_right = 0.312592
+anchor_bottom = 0.566262
+offset_top = -0.28007
+offset_right = -0.48003
+offset_bottom = 1.85986
+grow_vertical = 0
+texture = ExtResource("4_n7fug")
+region_rect = Rect2(0, 0, 190, 49)
+patch_margin_left = 8
+patch_margin_top = 8
+patch_margin_right = 8
+patch_margin_bottom = 8
+metadata/_edit_use_anchors_ = true
+
+[node name="description" type="RichTextLabel" parent="UI/tooltip"]
+layout_mode = 1
+anchors_preset = -1
+anchor_right = 1.0
+anchor_bottom = 1.0
+offset_left = 5.0
+offset_top = 6.0
+offset_right = -5.0
+offset_bottom = -9.0
+grow_horizontal = 2
+grow_vertical = 0
+theme_override_colors/default_color = Color(0.278431, 0.278431, 0.278431, 1)
+theme_override_font_sizes/normal_font_size = 20
+text = "Standard, Burning"
+metadata/_edit_use_anchors_ = true
+
+[node name="name" type="RichTextLabel" parent="UI/tooltip"]
+clip_contents = false
+layout_mode = 2
+anchor_left = 1.94848
+anchor_top = -3.35028
+anchor_right = 1.99048
+anchor_bottom = -3.31228
+offset_left = -504.503
+offset_top = 308.429
+offset_right = -457.507
+offset_bottom = 332.477
+grow_vertical = 0
+pivot_offset = Vector2(-6, 0)
+theme_override_colors/default_color = Color(0.278431, 0.278431, 0.278431, 1)
+theme_override_font_sizes/normal_font_size = 20
+text = "NODE"
+fit_content = true
+scroll_active = false
+autowrap_mode = 0
+shortcut_keys_enabled = false
+metadata/_edit_use_anchors_ = true
+
+[node name="NinePatchRect" type="NinePatchRect" parent="UI/tooltip/name"]
+show_behind_parent = true
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+offset_left = -8.0
+offset_top = -1.0
+offset_right = 7.0
+offset_bottom = 5.0
+grow_horizontal = 2
+grow_vertical = 2
+texture = ExtResource("4_n7fug")
+region_rect = Rect2(0, 143, 190, 49)
+patch_margin_left = 10
+patch_margin_top = 10
+patch_margin_right = 10
+patch_margin_bottom = 20
+
+[node name="cost" type="RichTextLabel" parent="UI/tooltip"]
+clip_contents = false
+layout_mode = 2
+anchor_left = 2.65077
+anchor_top = -3.35028
+anchor_right = 2.69277
+anchor_bottom = -3.31228
+offset_left = -504.503
+offset_top = 308.429
+offset_right = -457.507
+offset_bottom = 332.477
+grow_vertical = 0
+pivot_offset = Vector2(-6, 0)
+theme_override_colors/default_color = Color(0.278431, 0.278431, 0.278431, 1)
+theme_override_font_sizes/normal_font_size = 20
+text = "NODE"
+fit_content = true
+scroll_active = false
+autowrap_mode = 0
+shortcut_keys_enabled = false
+metadata/_edit_use_anchors_ = true
+
+[node name="NinePatchRect" type="NinePatchRect" parent="UI/tooltip/cost"]
+show_behind_parent = true
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+offset_left = -8.0
+offset_top = -1.0
+offset_right = 7.0
+offset_bottom = 5.0
+grow_horizontal = 2
+grow_vertical = 2
+texture = ExtResource("4_n7fug")
+region_rect = Rect2(0, 143, 190, 49)
+patch_margin_left = 10
+patch_margin_top = 10
+patch_margin_right = 10
+patch_margin_bottom = 20
 
 [node name="name_text" type="RichTextLabel" parent="UI"]
 clip_contents = false
@@ -226,10 +344,10 @@ visible = false
 layout_mode = 2
 
 [node name="CamParent" type="Node3D" parent="."]
-transform = Transform3D(0.707107, 1.60554e-24, 0.707107, 3.48787e-16, 1, -3.48787e-16, -0.707107, 4.93259e-16, 0.707107, 0, 0, 0)
+transform = Transform3D(1, -3.48787e-16, 3.48787e-16, 3.48787e-16, 1, -3.48787e-16, -3.48787e-16, 3.48787e-16, 1, 0, 0, 0)
 
 [node name="Camera3D" type="Camera3D" parent="CamParent"]
-transform = Transform3D(-1, -1.01751e-07, 4.21469e-08, -4.42575e-08, 0.707107, 0.707107, -9.41767e-08, 0.707107, -0.707107, 5.96046e-08, 7, -7.07107)
+transform = Transform3D(-1, 8.74228e-08, 3.82137e-15, -1.5246e-23, -4.37114e-08, 1, 8.74228e-08, 1, 4.37114e-08, 2.08165e-12, 7, 2.08165e-12)
 environment = SubResource("Environment_j67e7")
 projection = 1
 current = true

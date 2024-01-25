@@ -74,7 +74,7 @@ public partial class Main : Node3D
             serverComponents[component.ID] = component;
         }
 
-        LoadServer("server_c");
+        LoadServer("server_a");
     }
 
     public override void _Process(double delta)

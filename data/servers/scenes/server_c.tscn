@@ -1,9 +1,8 @@
-[gd_scene load_steps=5 format=3 uid="uid://gf3rvw6or8kt"]
+[gd_scene load_steps=4 format=3 uid="uid://gf3rvw6or8kt"]
 
 [ext_resource type="Script" path="res://Scripts/Network/Network.cs" id="1_coitq"]
 [ext_resource type="PackedScene" uid="uid://dummxnsurwjro" path="res://scenes/ServerNode.tscn" id="2_bh2tk"]
 [ext_resource type="PackedScene" uid="uid://d0v0fciug0wey" path="res://data/components/scenes/miner.tscn" id="3_kfpnl"]
-[ext_resource type="PackedScene" uid="uid://basykodf3h8cr" path="res://data/components/scenes/wallet.tscn" id="4_q1xju"]
 
 [node name="serverc" type="Node"]
 script = ExtResource("1_coitq")
@@ -21,7 +20,7 @@ linked_nodes = [NodePath("../NODE - 0"), NodePath("../NODE - 5")]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 8.15939, 0.261352, 0.0953398)
 ID = 2
 linked_nodes = [NodePath("../NODE - 8")]
-Credits = 300
+Credits = 200
 
 [node name="NODE - 8" parent="." node_paths=PackedStringArray("linked_nodes") instance=ExtResource("2_bh2tk")]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 4, 2.08165e-12, -6)
@@ -46,8 +45,6 @@ linked_nodes = [NodePath("../NODE - 10"), NodePath("../NODE - 11"), NodePath("..
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 2.08165e-12, 0.261, 9.81939)
 ID = 6
 linked_nodes = [NodePath("../NODE - 9")]
-
-[node name="wallet" parent="NODE - 10" instance=ExtResource("4_q1xju")]
 
 [node name="NODE - 11" parent="." node_paths=PackedStringArray("linked_nodes") instance=ExtResource("2_bh2tk")]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 2.08165e-12, 2.08165e-12, 0)

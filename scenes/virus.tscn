@@ -5,7 +5,7 @@
 [ext_resource type="Texture2D" uid="uid://4nq70cqwss5g" path="res://Assets/art/virus/playerGrey_up1.png" id="2_hrula"]
 
 [sub_resource type="BoxShape3D" id="BoxShape3D_fwf4n"]
-size = Vector3(0.622235, 0.992263, 0.631109)
+size = Vector3(0.794314, 0.992263, 0.826866)
 
 [node name="virus" type="Area3D"]
 collision_layer = 3
@@ -14,7 +14,7 @@ priority = 5
 script = ExtResource("1_lesgv")
 
 [node name="Sprite3D" type="Sprite3D" parent="."]
-transform = Transform3D(0.380407, 0.204223, 0.252158, -6.46342e-09, 0.388551, -0.314687, -0.324485, 0.239419, 0.295615, 0, 0.0891647, 0)
+transform = Transform3D(0.5, 0, -7.62298e-24, -7.62298e-24, -2.18557e-08, -0.5, 0, 0.5, -2.18557e-08, 2.08165e-12, 2.08165e-12, 2.08165e-12)
 modulate = Color(1, 0, 0, 1)
 render_priority = 100
 texture = ExtResource("2_hrula")
@@ -23,5 +23,5 @@ texture = ExtResource("2_hrula")
 script = ExtResource("2_1n2gi")
 
 [node name="CollisionShape3D" type="CollisionShape3D" parent="."]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -0.491388, 0.458379, -0.490608)
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 2.08165e-12, 0.26713, 2.08165e-12)
 shape = SubResource("BoxShape3D_fwf4n")

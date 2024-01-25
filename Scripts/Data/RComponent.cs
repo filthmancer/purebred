@@ -9,4 +9,6 @@ public partial class RComponent : Resource
     public PackedScene packedScene;
     [Export]
     public int cost;
+    [Export]
+    public Texture2D icon;
 }

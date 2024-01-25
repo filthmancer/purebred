@@ -7,14 +7,11 @@ const Main = preload("res://Scripts/Main.cs")
 const action_button:PackedScene = preload("res://scenes/tool_button.tscn");
 var server;
 
-var buttons = {}
-var buttons_visibilitytest = {}
-var callable_is_node_instance;
-var callable_is_link_instance;
-var callable_node_has_no_components;
-
 var highlight_components = []
 var target; 
+var button_data = {}
+var node_buttons = ["miner", "cage", "heatsink", "wallet"];
+var link_buttons = ["firewall"];
 # Called when the node enters the scene tree for the first time.
 func _ready():
 	
@@ -24,20 +21,31 @@ func _ready():
 	main.connect("InteractableExit", exit_highlight);
 	main.connect("HighlightSelected", select_highlight);
 	main.connect("HighlightDeselected", deselect_highlight);
+
+	generate_button_data();
 	
-	callable_is_node_instance = Callable(is_node_instance);
-	callable_is_link_instance = Callable(is_link_instance);
-	callable_node_has_no_components = Callable(has_no_components);
-	
-	create_actionbutton("build_cage", component_button_press, callable_is_node_instance, "res://Assets/art/wenrexa/СommonElement/Icon02.png");
-	create_actionbutton("build_miner", miner_button_press, callable_is_node_instance, "res://Assets/art/wenrexa/СommonElement/Icon03.png");
-	create_actionbutton("build_heatsink", heatsink_button_press, callable_is_node_instance, "res://Assets/art/wenrexa/СommonElement/Icon04.png");
-	create_actionbutton("build_wallet", wallet_button_press, callable_is_node_instance, "res://Assets/art/wenrexa/СommonElement/Icon01.png");
-	#create_actionbutton("move_allies", move_button_press, callable_is_node_instance, "res://Assets/art/wenrexa/СommonElement/Icon01.png");
-	create_actionbutton("build_firewall", firewall_button_press, callable_is_link_instance, "res://Assets/art/wenrexa/СommonElement/Icon05.png");
+	button_data["firewall"] = {
+		id = "firewall",
+		cost = "0",
+		name = "Firewall",
+		description = "Blocks all movement between these nodes",
+	}
+	create_actionbutton(button_data["firewall"], firewall_button_press, Callable(is_link_instance),load("res://Assets/art/wenrexa/СommonElement/Icon05.png"));
 	pass # Replace with function body.
 
-
+func generate_button_data():
+	for buttontype in node_buttons:
+		var script = load("res://Scripts/Network/Components/" + buttontype + ".gd");
+		var res = load("res://data/components/" + buttontype + ".tres");
+		button_data[buttontype] = {
+			id = buttontype,
+			cost= res.get("cost"),
+			name= script.get("StaticName") if script.get("StaticName") != null else buttontype,
+			description = script.get("StaticDescription"),
+		};
+		create_actionbutton(button_data[buttontype], Callable(button_select).bind(buttontype), Callable(is_node_instance),res.get("icon"))
+	
+		
 # Called every frame. 'delta' is the elapsed time since the previous frame.
 func _process(delta):
 	if server == null:
@@ -45,24 +53,59 @@ func _process(delta):
 	$credits.set_text("CR: " + str(server.Credits) + " / " + str(server.CreditsMax()));
 	$data.set_text("D: " + str(server.Data) + " / " + str(server.DataMax()))
 	$heat.set_text(str(server.Heat) + "/" + str(server.HeatMax));
-	update_highlight_description(server.interactable_highlighted);
+	if(target != null):
+		tooltip_enter(target.call("Name"), target.call("Description"));
+	#update_highlight_description(server.interactable_highlighted);
+	_process_tooltip_position();
 	pass
+
+func _process_tooltip_position():
+	var pos = get_viewport().get_mouse_position();
+	
+	if(pos.y + $tooltip.size.y > get_viewport_rect().size.y):
+		pos.y -= $tooltip.size.y;
+	if pos.x + $tooltip.size.x > get_viewport_rect().size.x:
+		pos.x -= $tooltip.size.x + 30;
+	else:
+		pos.x += 30;
+	$tooltip.position = pos;
+	
 	
 func get_server(_server):
-	server = _server#get_node("/root/Main/Network")
+	server = _server
 	
-func create_actionbutton(id, _func_select, _func_visibility, icon):
+func create_actionbutton(data, _func_select, _func_visibility, icon):
 	var button = action_button.instantiate()
 	$Buttons.add_child(button);
 	button.connect("button_down", _func_select);
-	buttons[id] =  button;
-	buttons_visibilitytest[id] = _func_visibility;
-	button.get_node("Icon").texture = load(icon);
-	
+	button.connect("mouse_entered", Callable(tooltip_enter).bind(data.name, data.description, data.cost));
+	button.connect("mouse_exited", Callable(tooltip_exit));
+	data.button = button
+	data.visibility = _func_visibility;
+	#buttons_visibilitytest[data.id] = _func_visibility;
+	button.get_node("Icon").texture = icon;
 	button.hide();
 	
+func tooltip_enter(name, description = null, cost = null):
+	$tooltip/name.set_text(name);
+	
+	if description != null: 
+		$tooltip/description.show();
+		$tooltip/description.set_text(description);
+	else:
+		$tooltip/description.hide();
+		
+	if cost != null:
+		$tooltip/cost.show();
+		$tooltip/cost.set_text(str(cost));
+	else:
+		$tooltip/cost.hide();
+	$tooltip.show();
+	
+func tooltip_exit():
+	$tooltip.hide();
+	
 func update_highlight_description(node):
-
 	if node == null:
 		exit_highlight(node);
 	else:
@@ -75,6 +118,8 @@ func update_highlight_description(node):
 			
 		$description_box/description_text.set_text(description);
 		$name_text.set_text(name);
+		$description_box.show();
+		$name_text.show();
 		
 		for comp in highlight_components:
 			comp.queue_free();
@@ -90,19 +135,23 @@ func update_highlight_description(node):
 	pass
 	
 func enter_highlight(node):
-	if server.interactable_selected!= null &&server.interactable_selected != node:
-		return;
-	update_highlight_description(node);
+	target = node;
+	tooltip_enter(node.call("Name"), node.call("Description"));
+	#if server.interactable_selected!= null &&server.interactable_selected != node:
+	#	return;
+	#update_highlight_description(node);
 	
 	
 func exit_highlight(node):
-	if server.interactable_selected != null:
-		return;
-	$description_box/description_text.text = "";
-	$name_text.set_text("");
-	for comp in highlight_components:
-		comp.queue_free();
-		highlight_components.erase(comp);
+	target = null;
+	tooltip_exit()
+	#if server.interactable_selected != null:
+	#	return;
+	#$description_box.hide();
+	#$name_text.hide();
+	#for comp in highlight_components:
+	#	comp.queue_free();
+	#	highlight_components.erase(comp);
 	
 func is_node_instance(n):
 	return n is ServerNode;
@@ -117,16 +166,21 @@ func has_no_components(n):
 	
 func select_highlight(node = null):
 	update_highlight_description(node);
-	for button in buttons:
+	for id in button_data:
 		if node == null:
-			buttons[button].hide();
+			button_data[id].button.hide();
 		else:
-			var visible = buttons_visibilitytest[button].call(node);
-			buttons[button].visible = visible;
+			var visible = button_data[id].visibility.call(node);
+			button_data[id].button.visible = visible;
 	return;
+	
 func deselect_highlight(node = null):
 	select_highlight(null);
 	update_highlight_description(server.interactable_highlighted)
+	
+func button_select(id):
+	if server.interactable_selected != null:
+		server.interactable_selected.BuildComponent(id);
 		
 func component_button_press():
 	if server.interactable_selected != null :

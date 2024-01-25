@@ -1,5 +1,6 @@
-[gd_resource type="Resource" load_steps=3 format=3 uid="uid://h7hn0hffkbkv"]
+[gd_resource type="Resource" load_steps=4 format=3 uid="uid://h7hn0hffkbkv"]
 
+[ext_resource type="Texture2D" uid="uid://dle1aj6mno21l" path="res://Assets/art/wenrexa/СommonElement/Icon03.png" id="1_5e423"]
 [ext_resource type="PackedScene" uid="uid://bot0dy1ofcfpr" path="res://data/components/scenes/heatsink.tscn" id="1_xgmyk"]
 [ext_resource type="Script" path="res://Scripts/Data/RComponent.cs" id="2_mqvf4"]
 
@@ -8,3 +9,4 @@ script = ExtResource("2_mqvf4")
 ID = "cage"
 packedScene = ExtResource("1_xgmyk")
 cost = 500
+icon = ExtResource("1_5e423")
