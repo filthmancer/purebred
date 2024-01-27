@@ -8,5 +8,5 @@
 script = ExtResource("2_y7egv")
 ID = "heatsink"
 packedScene = ExtResource("1_egkyr")
-cost = 200
+cost = 100
 icon = ExtResource("1_1d02h")

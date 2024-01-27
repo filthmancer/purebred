@@ -8,5 +8,5 @@
 script = ExtResource("2_mqvf4")
 ID = "cage"
 packedScene = ExtResource("1_xgmyk")
-cost = 500
+cost = 100
 icon = ExtResource("1_5e423")

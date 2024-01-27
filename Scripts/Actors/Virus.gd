@@ -53,7 +53,7 @@ func on_tick():
 func update_target():
 	timer = rng.randi_range(10, 25);
 	var target = server.GetRandomNode();
-	path = server.GetPathFromTo(node_current, target, ["avoid_firewalls"]);
+	path = server.GetPathFromTo(node_current.ID, target.ID, ["avoid_firewalls"]);
 	
 func highlighted(target):
 	pass;

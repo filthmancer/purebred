@@ -201,58 +201,61 @@ public partial class Main : Node3D
         return false;
     }
 
-    public bool PurchaseItem(string id, ServerNode node)
+    public bool PurchaseItem(string id, ServerNode node, out RComponent componentResource)
     {
+        componentResource = null;
         if (!serverComponents.ContainsKey(id))
             return false;
+
+        componentResource = serverComponents[id];
 
         int cost = serverComponents[id].cost;
         if (server.Credits < cost)
             return false;
 
-        int SubtractFromPool(ref int pool, int amount)
-        {
-            int sub = Math.Min(amount, pool);
-            pool -= sub;
-            return amount - sub;
-        }
+        // int SubtractFromPool(ref int pool, int amount)
+        // {
+        //     int sub = Math.Min(amount, pool);
+        //     pool -= sub;
+        //     return amount - sub;
+        // }
 
-        Dictionary<int, int> subtractedAmounts = new Dictionary<int, int>();
-        int leftover = node.Credits;
-        int ID = node.ID;
-        int remaining = cost;
-        do
-        {
-            node = server.nodeInstances[ID];
-            leftover = node.Credits;
-            // GD.Print($"Subtracting {remaining} from {node.Name()}, {leftover}");
-            remaining = SubtractFromPool(ref leftover, remaining);
-            // GD.Print($"{remaining} cost remaining, {leftover} leftover on {node.Name()}");
-            subtractedAmounts[ID] = node.Credits - leftover;
-            if (remaining > 0)
-            {
-                var nbours = node.GetNeighbours();
-                var nextNode = nbours.FirstOrDefault(n => n.Credits > 0 && !subtractedAmounts.ContainsKey(n.ID));
-                if (nextNode == null)
-                    nextNode = nbours.FirstOrDefault(n => !subtractedAmounts.ContainsKey(n.ID));
-                if (nextNode == null)
-                    nextNode = server.nodeInstances.FirstOrDefault(n => !subtractedAmounts.ContainsKey(n.Key)).Value;
+        // Dictionary<int, int> subtractedAmounts = new Dictionary<int, int>();
+        // int leftover = node.Credits;
+        // int ID = node.ID;
+        // int remaining = cost;
+        // do
+        // {
+        //     node = server.nodeInstances[ID];
+        //     leftover = node.Credits;
+        //     // GD.Print($"Subtracting {remaining} from {node.Name()}, {leftover}");
+        //     remaining = SubtractFromPool(ref leftover, remaining);
+        //     // GD.Print($"{remaining} cost remaining, {leftover} leftover on {node.Name()}");
+        //     subtractedAmounts[ID] = node.Credits - leftover;
+        //     if (remaining > 0)
+        //     {
+        //         var nbours = node.GetNeighbours();
+        //         var nextNode = nbours.FirstOrDefault(n => n.Credits > 0 && !subtractedAmounts.ContainsKey(n.ID));
+        //         if (nextNode == null)
+        //             nextNode = nbours.FirstOrDefault(n => !subtractedAmounts.ContainsKey(n.ID));
+        //         if (nextNode == null)
+        //             nextNode = server.nodeInstances.FirstOrDefault(n => !subtractedAmounts.ContainsKey(n.Key)).Value;
 
-                ID = nextNode.ID;
-            }
-        }
-        while (remaining > 0);
+        //         ID = nextNode.ID;
+        //     }
+        // }
+        // while (remaining > 0);
 
-        if (remaining > 0)
-        {
-            return false;
-        }
+        // if (remaining > 0)
+        // {
+        //     return false;
+        // }
 
-        foreach (var sub in subtractedAmounts)
-        {
-            server.nodeInstances[sub.Key].Credits -= sub.Value;
-        }
-        server.Credits -= cost;
+        // foreach (var sub in subtractedAmounts)
+        // {
+        //     server.nodeInstances[sub.Key].Credits -= sub.Value;
+        // }
+        // server.Credits -= cost;
 
         return true;
     }

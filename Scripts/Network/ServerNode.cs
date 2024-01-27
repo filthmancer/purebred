@@ -7,6 +7,8 @@ using System.Threading.Tasks;
 [GlobalClass]
 public partial class ServerNode : InteractableArea3D, IDisposablePoolResource, IDescribableNode
 {
+
+    public Vector2 Position2D => new Vector2(Position.X, Position.Z);
     public IDisposablePool Pool { get; set; }
     [Export]
     public int ID;
@@ -37,7 +39,7 @@ public partial class ServerNode : InteractableArea3D, IDisposablePoolResource, I
     private int DataMax_components = 0;
 
     private float Credits_thisTick, Data_thisTick;
-    private Dictionary<int, float> Credits_thisTick_transferred = new Dictionary<int, float>();
+    public Dictionary<int, float> Credits_thisTick_transferred = new Dictionary<int, float>();
 
     [Export]
     public bool LinkNodes
@@ -94,9 +96,10 @@ public partial class ServerNode : InteractableArea3D, IDisposablePoolResource, I
         return "Node";
     }
 
-    private Network server;
+    public Network server { get; private set; }
 
     private static PackedScene prefab;
+
     public static ServerNode Instantiate(IDisposablePool _pool)
     {
         if (prefab == null)
@@ -140,6 +143,11 @@ public partial class ServerNode : InteractableArea3D, IDisposablePoolResource, I
         }
         AddToGroup("ServerNodes", true);
     }
+    public override void _Process(double delta)
+    {
+        base._Process(delta);
+        UpdateCreditObjects();
+    }
 
     public void Initialise(Vector3? _pos, Network _server)
     {
@@ -174,8 +182,6 @@ public partial class ServerNode : InteractableArea3D, IDisposablePoolResource, I
         {
             Credits_thisTick += transfer.Value;
         }
-
-        UpdateCreditObjects();
         Credits_thisTick_transferred.Clear();
     }
 
@@ -210,48 +216,8 @@ public partial class ServerNode : InteractableArea3D, IDisposablePoolResource, I
             creditObjects.Last().Scale = new Vector3(1, (float)(Credits % 10 / 10F), 1);
         }
 
-
-        foreach (var transfer in Credits_thisTick_transferred)
-        {
-            MoveResourceBetweenNodes("credits", (int)transfer.Value, server.nodeInstances[transfer.Key], this);
-        }
     }
 
-    private static void MoveResourceBetweenNodes(string resource, int transfer, ServerNode start, ServerNode end)
-    {
-        var prefab = GD.Load<PackedScene>(AssetPaths.Credits);
-        switch (resource)
-        {
-            case "credits":
-                prefab = GD.Load<PackedScene>(AssetPaths.Credits);
-                break;
-            case "data":
-
-                break;
-        }
-        var objsRequired = (int)(transfer / 10) + 1;
-        for (int i = 0; i < objsRequired; i++)
-        {
-            var instance = prefab.Instantiate<Node3D>();
-            start.AddChild(instance);
-            instance.GlobalPosition = start.GlobalPosition;
-            var startingPosition = instance.GlobalPosition;
-            var endingPosition = end.GlobalPosition;
-            Task.Run(async () => await MoveObjectTo(startingPosition, endingPosition, instance));
-        }
-    }
-
-    private static async Task MoveObjectTo(Vector3 startingPosition, Vector3 endingPosition, Node3D instance)
-    {
-        float t = 0.0F;
-        while (t < 1)
-        {
-            t += 0.01F;
-            instance.CallDeferred("set_global_position", startingPosition.Lerp(endingPosition, t));
-            await Task.Delay(10);
-        }
-        instance.CallDeferred("free");
-    }
 
     public void UpdateHeat()
     {
@@ -317,22 +283,17 @@ public partial class ServerNode : InteractableArea3D, IDisposablePoolResource, I
         if (components.Count >= ComponentMax)
             return false;
 
-
         // Attempts to purchase the item
-        if (!server.main.PurchaseItem(id, this))
+        if (!server.main.PurchaseItem(id, this, out RComponent componentResource))
             return false;
 
-        var component = server.Visuals_GenerateComponent(id);
-        if (component == null)
+        var activeBuild = new Network.ComponentBuildData()
         {
-            GD.PushError($"SERVERNODE.BUILDCOMPONENT: {id} was not found in component dictionary");
-            return false;
-        }
-        component.Position = Vector3.Zero;
-        component.Call("initialise", this);
-
-        AddChild(component);
-        components.Add(component);
+            NodeID = this.ID,
+            ComponentID = id,
+            TargetCost = componentResource.cost,
+        };
+        server.AddActiveBuild(activeBuild);
         return true;
     }
 
@@ -350,9 +311,9 @@ public partial class ServerNode : InteractableArea3D, IDisposablePoolResource, I
         return components.ToArray();
     }
 
-    public ServerNode[] GetNeighbours()
+    public ServerNode[] GetNeighbours(int range = 1)
     {
-        return server.GetAllNeighbours(this);
+        return server.GetAllNeighbours(this, range);
     }
 
     public bool HasComponent(string id)
@@ -375,17 +336,40 @@ public partial class ServerNode : InteractableArea3D, IDisposablePoolResource, I
         }
     }
 
-    public void TransferResource(string type, int amount, ServerNode from)
+    public void LoseResource(string type, float amount, Node cause)
     {
         switch (type)
         {
             case "credits":
-                if (!Credits_thisTick_transferred.ContainsKey(from.ID)) Credits_thisTick_transferred[from.ID] = 0;
-                Credits_thisTick_transferred[from.ID] += amount;
-                from.Credits = Math.Clamp(from.Credits - amount, 0, from.GetCreditsMax());
+                Credits_thisTick -= amount;
                 break;
             case "data":
-                //Data_thisTick_transferred[from.ID] += amount;
+                Data_thisTick -= amount;
+                break;
+        }
+    }
+    public void GainResourceImmediate(string type, int amount, Node cause)
+    {
+        switch (type)
+        {
+            case "credits":
+                Credits += amount;
+                break;
+            case "data":
+                Data += amount;
+                break;
+        }
+    }
+
+    public void LoseResourceImmediate(string type, int amount, Node cause)
+    {
+        switch (type)
+        {
+            case "credits":
+                Credits -= amount;
+                break;
+            case "data":
+                Data -= amount;
                 break;
         }
     }

@@ -1,8 +1,9 @@
-[gd_scene load_steps=4 format=3 uid="uid://c2iwn3pjkyodl"]
+[gd_scene load_steps=5 format=3 uid="uid://c2iwn3pjkyodl"]
 
 [ext_resource type="Script" path="res://Scripts/Network/Network.cs" id="1_edfxn"]
 [ext_resource type="PackedScene" uid="uid://dummxnsurwjro" path="res://scenes/ServerNode.tscn" id="2_6448p"]
 [ext_resource type="PackedScene" uid="uid://d0v0fciug0wey" path="res://data/components/scenes/miner.tscn" id="3_ge168"]
+[ext_resource type="PackedScene" uid="uid://basykodf3h8cr" path="res://data/components/scenes/wallet.tscn" id="3_ilips"]
 
 [node name="serverc" type="Node"]
 script = ExtResource("1_edfxn")
@@ -11,10 +12,13 @@ script = ExtResource("1_edfxn")
 transform = Transform3D(1, 0.000523599, 0, -0.000523599, 1, 0, 0, 0, 1, -6, 0.00314159, 2.08165e-12)
 linked_nodes = [NodePath("../NODE - 18"), NodePath("../NODE - 19"), NodePath("../NODE - 20"), NodePath("../NODE - 7"), NodePath("../NODE - 8")]
 
+[node name="wallet" parent="NODE - 0" instance=ExtResource("3_ilips")]
+
 [node name="NODE - 7" parent="." node_paths=PackedStringArray("linked_nodes") instance=ExtResource("2_6448p")]
 transform = Transform3D(1, 0.000523599, 0, -0.000523599, 1, 0, 0, 0, 1, 0, 2.32831e-10, -4)
 ID = 1
 linked_nodes = [NodePath("../NODE - 0"), NodePath("../NODE - 9")]
+Credits = 100
 
 [node name="NODE - 9" parent="." node_paths=PackedStringArray("linked_nodes") instance=ExtResource("2_6448p")]
 transform = Transform3D(1, 0.000523599, 0, -0.000523599, 1, 0, 0, 0, 1, 6, -0.00314159, 0)
@@ -61,6 +65,8 @@ linked_nodes = [NodePath("../NODE - 23"), NodePath("../NODE - 0")]
 transform = Transform3D(1, 0.000523599, 0, -0.000523599, 1, 0, 0, 0, 1, -19, 0.00994838, 2.08165e-12)
 ID = 9
 linked_nodes = [NodePath("../NODE - 18")]
+
+[node name="miner" parent="NODE - 21" instance=ExtResource("3_ge168")]
 
 [node name="NODE - 22" parent="." node_paths=PackedStringArray("linked_nodes") instance=ExtResource("2_6448p")]
 transform = Transform3D(1, 0.000523599, 0, -0.000523599, 1, 0, 0, 0, 1, -19, 0.00994838, -9)

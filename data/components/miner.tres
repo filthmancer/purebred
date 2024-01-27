@@ -8,5 +8,5 @@
 script = ExtResource("2_s7soi")
 ID = "miner"
 packedScene = ExtResource("1_yo7o0")
-cost = 100
+cost = 30
 icon = ExtResource("1_lmw55")

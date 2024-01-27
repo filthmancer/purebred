@@ -9,6 +9,34 @@ using System.Threading.Tasks;
 [Tool]
 public partial class Network : Node
 {
+    public struct ComponentBuildData
+    {
+        public int NodeID;
+        public string ComponentID;
+        public int TargetCost;
+    }
+
+    public struct TransferData
+    {
+        public Guid ID;
+        public int FromID, ToID;
+        public int Amount;
+        public string Type;
+    }
+
+    public class TransferVisuals
+    {
+        public Node3D Object;
+        public Vector3 startPosition;
+        public Vector3 endPosition;
+        public float rate = 0;
+    }
+
+    private static List<ComponentBuildData> ActiveBuilds = new List<ComponentBuildData>();
+    private static List<ComponentBuildData> _ActiveBuilds_Temp = new List<ComponentBuildData>();
+    private static List<TransferData> ActiveTransfers = new List<TransferData>();
+    private static List<TransferData> _ActiveTransfers_Temp = new List<TransferData>();
+    private static Dictionary<Guid, TransferVisuals> _ActiveTransfers_Objects = new Dictionary<Guid, TransferVisuals>();
     private NetworkData serverData;
 
     public Main main;
@@ -36,6 +64,8 @@ public partial class Network : Node
 
     public Dictionary<int, ServerNode> nodeInstances = new Dictionary<int, ServerNode>();
     public Dictionary<int, LinkInstance> linkInstances = new Dictionary<int, LinkInstance>();
+
+    public Dictionary<int, Area3D> AllInstances = new Dictionary<int, Area3D>();
 
     public int Heat = 0;
     private int Heat_nodes = 0;
@@ -95,7 +125,10 @@ public partial class Network : Node
             Heat = Math.Max(Heat_nodes, 0);
             Credits = Math.Clamp(Credits, 0, CreditsMax());
             Data = Math.Clamp(Data, 0, DataMax());
+
+            TickActiveBuilds();
         }
+        TickActiveTransfers((float)delta);
     }
     public override void _UnhandledInput(InputEvent @event)
     {
@@ -153,6 +186,7 @@ public partial class Network : Node
             if (!nodeInstances.ContainsKey(serverData.Nodes[n].ID))
             {
                 nodeInstances[serverData.Nodes[n].ID] = Main.pool_serverNode.Acquire();
+                AllInstances[serverData.Nodes[n].ID] = nodeInstances[serverData.Nodes[n].ID];
                 AddChild(nodeInstances[serverData.Nodes[n].ID]);
             }
             var nodeInstance = nodeInstances[serverData.Nodes[n].ID];
@@ -175,7 +209,6 @@ public partial class Network : Node
             var link = Visuals_LinkBetween(nodeA, nodeB);
             link.Flags = serverData.Links[l].Flags;
         }
-
     }
 
     private LinkInstance Visuals_LinkBetween(ServerNode nodeA, ServerNode nodeB)
@@ -195,6 +228,7 @@ public partial class Network : Node
         linkInstance.render.Connect("mouse_entered", Callable.From(() => SetTargetNode(linkInstance, true)));
         linkInstance.render.Connect("mouse_exited", Callable.From(() => SetTargetNode(linkInstance, false)));
         linkInstances[linkInstance.ID] = linkInstance;
+        AllInstances[linkInstance.ID] = linkInstance;
         linkInstance.InitialiseInteractionEvents(main);
         AddChild(linkInstance);
         return linkInstance;
@@ -254,6 +288,7 @@ public partial class Network : Node
 
             ServerNode node = child as ServerNode;
             nodeInstances[node.ID] = node;
+            AllInstances[node.ID] = node;
             //node.Initialise(null, this);
         }
         data.Nodes = new List<NodeData>();
@@ -286,6 +321,7 @@ public partial class Network : Node
             if (a != null && b != null)
             {
                 linkInstances[link.ID] = link;
+                AllInstances[link.ID] = link;
                 var lA = new int[2] { a.ID, b.ID };
                 var lB = new int[2] { b.ID, a.ID };
                 if (!linkDataFromChildren.Any(l => l.SequenceEqual(lA)) && !linkDataFromChildren.Any(l => l.SequenceEqual(lB)))
@@ -339,6 +375,159 @@ public partial class Network : Node
         return nodeInstances[main.rng.RandiRange(0, nodeInstances.Count - 1)];
     }
 
+    public void AddActiveBuild(ComponentBuildData activeBuild)
+    {
+        ActiveBuilds.Add(activeBuild);
+    }
+    public void TickActiveBuilds()
+    {
+        _ActiveBuilds_Temp = new List<ComponentBuildData>(ActiveBuilds);
+        int buildCostTick = 3;
+        int amountRequired = 0;
+        for (int i = 0; i < _ActiveBuilds_Temp.Count; i++)
+        {
+            var build = _ActiveBuilds_Temp[i];
+            ServerNode target = nodeInstances[build.NodeID];
+            amountRequired = build.TargetCost - target.Credits;
+            //# If we already have enough credits to complete this
+            if (amountRequired <= 0)
+            {
+                CompleteActiveBuild(build);
+                continue;
+            }
+
+            foreach (var transfer in ActiveTransfers.FindAll(t => t.ToID == target.ID))
+            {
+                amountRequired -= transfer.Amount;
+            }
+            GD.Print("Build: " + build.ComponentID + ": needed : " + amountRequired);
+            //# if there are enough credits on their way, don't create more transfers
+            if (amountRequired <= 0)
+            {
+                continue;
+            }
+
+            foreach (var sender in nodeInstances)
+            {
+                if (sender.Value == target) continue;
+                // This node has no credits
+                if (sender.Value.Credits == 0)
+                {
+                    continue;
+                }
+
+                var path = pathfinding.GetIdPath((int)sender.Value.ID, (int)target.ID);
+                //Invalid Path
+                if (path.Length == 0)
+                {
+                    continue;
+                }
+
+                int val = Math.Min(buildCostTick, sender.Value.Credits);
+                val = Math.Min(val, amountRequired);
+                if (val == 0) break;
+
+                amountRequired -= val;
+
+                TransferResource("credits", val, target, sender.Value);
+            }
+        }
+    }
+
+    private void CompleteActiveBuild(ComponentBuildData build)
+    {
+        var node = nodeInstances[build.NodeID];
+        var component = Visuals_GenerateComponent(build.ComponentID);
+        if (component == null)
+        {
+            GD.PushError($"SERVERNODE.BUILDCOMPONENT: {build.ComponentID} was not found in component dictionary");
+            return;
+        }
+        component.Position = Vector3.Zero;
+        component.Call("initialise", node);
+
+        node.AddChild(component);
+        node.components.Add(component);
+        ActiveBuilds.Remove(build);
+        node.LoseResourceImmediate("credits", build.TargetCost, component);
+    }
+
+    #region Resources
+
+    public void TransferResource(string type, int amount, ServerNode to, ServerNode from)
+    {
+        var transfer = new TransferData()
+        {
+            ID = Guid.NewGuid(),
+            FromID = from.ID,
+            ToID = to.ID,
+            Type = type,
+            Amount = amount
+        };
+        ActiveTransfers.Add(transfer);
+        from.LoseResourceImmediate(type, amount, to);
+    }
+
+    public void TickActiveTransfers(float delta)
+    {
+        var prefab = GD.Load<PackedScene>(AssetPaths.Credits);
+        _ActiveTransfers_Temp = new List<TransferData>(ActiveTransfers);
+        foreach (var transfer in _ActiveTransfers_Temp)
+        {
+            var startNode = nodeInstances[transfer.FromID];
+            var endNode = nodeInstances[transfer.ToID];
+
+            if (!_ActiveTransfers_Objects.ContainsKey(transfer.ID))
+            {
+                var instance = prefab.Instantiate<Node3D>();
+                _ActiveTransfers_Objects[transfer.ID] = new TransferVisuals()
+                {
+                    Object = instance,
+                    startPosition = startNode.Position,
+                    endPosition = startNode.Position,
+                    rate = 1
+                };
+                AddChild(instance);
+                instance.Position = startNode.Position;
+            }
+
+            var visuals = _ActiveTransfers_Objects[transfer.ID];
+
+            if (visuals.rate >= 1)
+            {
+                int currentPoint = (int)pathfinding.GetClosestPoint(new Vector2(visuals.Object.Position.X, visuals.Object.Position.Z));
+                if (currentPoint == endNode.ID)
+                {
+                    ActiveTransfers.Remove(transfer);
+                    _ActiveTransfers_Objects.Remove(transfer.ID);
+                    visuals.Object.CallDeferred("free");
+                    endNode.GainResourceImmediate(transfer.Type, transfer.Amount, nodeInstances[transfer.FromID]);
+                    continue;
+                }
+
+                var nextPoint = GetPathFromTo(currentPoint, endNode.ID, new string[1] { "avoid_firewalls" })[1];
+                visuals.startPosition = visuals.endPosition;
+                visuals.endPosition = nextPoint.Position;
+                visuals.rate = 0;
+            }
+            visuals.rate = Mathf.Clamp(visuals.rate + delta * 2, 0, 1);
+            visuals.Object.Position = visuals.startPosition.Lerp(visuals.endPosition, visuals.rate);
+            //Task.Run(async () => await MoveObjectTo(startingPosition, endingPosition, instance));
+        }
+    }
+
+    private static async Task MoveObjectTo(Vector3 startingPosition, Vector3 endingPosition, Node3D instance)
+    {
+        float t = 0.0F;
+        while (t < 1)
+        {
+            t += 0.01F;
+            instance.CallDeferred("set_position", startingPosition.Lerp(endingPosition, t));
+            await Task.Delay(10);
+        }
+        instance.CallDeferred("free");
+    }
+    #endregion
 
     #region Pathfinding
     private void UpdatePathfinding()
@@ -394,7 +583,7 @@ public partial class Network : Node
         return weightIn;
     }
 
-    public Area3D[] GetPathFromTo(ServerNode a, ServerNode b, params string[] rules)
+    public Area3D[] GetPathFromTo(long a, long b, params string[] rules)
     {
         foreach (var node in pathfinding.GetPointIds())
         {
@@ -412,7 +601,7 @@ public partial class Network : Node
             }
             pathfinding.SetPointWeightScale(node, weightIn);
         }
-        var path = pathfinding.GetIdPath(a.ID, b.ID);
+        var path = pathfinding.GetIdPath(a, b);
         List<Area3D> pathAsObjects = new List<Area3D>();
         foreach (var point in path)
         {
@@ -473,17 +662,29 @@ public partial class Network : Node
         main.EmitGodotSignal(nameof(Main.ServerGenerationComplete), this);
     }
 
-    public ServerNode[] GetAllNeighbours(ServerNode serverNode)
+    public ServerNode[] GetAllNeighbours(ServerNode serverNode, int range = 1)
     {
-        List<LinkData> links = serverData.Links.FindAll(l => l.NodeA == serverNode.ID || l.NodeB == serverNode.ID);
+        // List<LinkData> links = serverData.Links.FindAll(l => l.NodeA == serverNode.ID || l.NodeB == serverNode.ID);
+        // List<ServerNode> nodes = new List<ServerNode>();
+        // foreach (var link in links)
+        // {
+        //     if (link.NodeA == serverNode.ID)
+        //         nodes.Add(nodeInstances[link.NodeB]);
+        //     else if (link.NodeB == serverNode.ID)
+        //         nodes.Add(nodeInstances[link.NodeA]);
+        // }
         List<ServerNode> nodes = new List<ServerNode>();
-        foreach (var link in links)
+        long[] path;
+        foreach (var n in nodeInstances)
         {
-            if (link.NodeA == serverNode.ID)
-                nodes.Add(nodeInstances[link.NodeB]);
-            else if (link.NodeB == serverNode.ID)
-                nodes.Add(nodeInstances[link.NodeA]);
+            if (n.Value == serverNode) continue;
+            path = pathfinding.GetIdPath(serverNode.ID, n.Value.ID);
+            if (path.Length - 1 <= range * 2)
+            {
+                nodes.Add(n.Value);
+            }
         }
+
         return nodes.ToArray();
     }
     [Flags]

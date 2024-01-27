@@ -40,11 +40,11 @@ func on_tick():
 func get_heat():
 	return 0;
 	
-func get_neighbours():
-	return nodeInstance.GetNeighbours();
+func get_neighbours(range = 1):
+	return nodeInstance.GetNeighbours(range);
 	
-func get_neighbour_components():
-	var neighbours = nodeInstance.GetNeighbours();
+func get_neighbour_components(range = 1):
+	var neighbours = nodeInstance.GetNeighbours(range);
 	var neighbour_components = [];
 	for neighbour in neighbours:
 		neighbour_components.append_array(neighbour.GetComponents())
