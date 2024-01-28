@@ -1,6 +1,7 @@
 using Godot;
 using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.Linq;
 
 public partial class Main : Node3D
@@ -43,11 +44,11 @@ public partial class Main : Node3D
 
     //* Panning has less effect the smaller the camera size is
     float zoomFactor => Math.Clamp(1 - mainCamera_zoomThreshold.X / mainCamera.Size, 0.1F, 2);
+    bool isMouseDragging = false;
+    Vector2 mouseDragInitialPosition, mouseDragDelta;
     public override void _UnhandledInput(InputEvent @event)
     {
         Vector3 pos = cam_parent.Position;
-        GD.Print(@event);
-
         if (@event is InputEventMagnifyGesture magnifyGesture)
         {
             mainCamera.Size = Math.Clamp(mainCamera.Size / magnifyGesture.Factor, mainCamera_zoomThreshold.X, mainCamera_zoomThreshold.Y);
@@ -59,6 +60,7 @@ public partial class Main : Node3D
         }
         else if (@event is InputEventMouseButton mouseButton)
         {
+
             switch (mouseButton.ButtonIndex)
             {
                 case MouseButton.WheelDown:
@@ -68,8 +70,21 @@ public partial class Main : Node3D
                     mainCamera.Size = Math.Clamp(mainCamera.Size * 0.98F, mainCamera_zoomThreshold.X, mainCamera_zoomThreshold.Y);
                     break;
                 case MouseButton.Left:
-
+                    if (isMouseDragging != mouseButton.IsPressed())
+                    {
+                        GD.Print("SETTING PRESSED " + mouseButton.IsPressed());
+                        isMouseDragging = mouseButton.IsPressed();
+                        mouseDragInitialPosition = mouseButton.Position;
+                    }
                     break;
+            }
+        }
+        else if (@event is InputEventMouseMotion mouseMotion)
+        {
+            if (isMouseDragging)
+            {
+                mouseDragDelta = mouseMotion.Position - mouseDragInitialPosition;
+                mouseDragInitialPosition = mouseMotion.Position;
             }
         }
     }
@@ -102,6 +117,12 @@ public partial class Main : Node3D
     private void ProcessCameraInput(double delta)
     {
         var newInput = new Vector3();
+        if (isMouseDragging)
+        {
+            newInput += cam_parent.Basis.X * mouseDragDelta.X * 0.2F;
+            newInput += cam_parent.Basis.Z * mouseDragDelta.Y * 0.2F;//new Vector3(cam_parent.Basis.X.X * -mouseDragDelta.X, 0, cam_parent.Basis.Z.Z * -mouseDragDelta.Y);
+            mouseDragDelta = Vector2.Zero;
+        }
         if (Input.IsActionPressed("cam_right"))
         {
             newInput += -cam_parent.Basis.X;
@@ -126,7 +147,7 @@ public partial class Main : Node3D
             isTargeting = false;
         }
 
-        _input_velocity = _input_velocity.Normalized();
+        //_input_velocity = _input_velocity.Normalized();
 
         if (_input_velocity == Vector3.Zero)
         {

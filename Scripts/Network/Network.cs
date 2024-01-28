@@ -383,11 +383,11 @@ public partial class Network : Node
     }
     public void TickActiveBuilds()
     {
-        _ActiveBuilds_Temp = new List<ComponentBuildData>(ActiveBuilds);
+        _ActiveBuilds_Temp = new List<ComponentBuildData>();
 
-        for (int i = 0; i < _ActiveBuilds_Temp.Count; i++)
+        for (int i = 0; i < ActiveBuilds.Count; i++)
         {
-            var build = _ActiveBuilds_Temp[i];
+            var build = ActiveBuilds[i];
             ServerNode target = nodeInstances[build.NodeID];
             bool resourcesTransferred = true;
             foreach (var cost in build.Costs)
@@ -411,8 +411,13 @@ public partial class Network : Node
                 {
                     // If we are completed install
                     CompleteActiveBuild(build);
+                    _ActiveBuilds_Temp.Add(build);
                 }
             }
+        }
+        for (int i = 0; i < _ActiveBuilds_Temp.Count; i++)
+        {
+            ActiveBuilds.Remove(_ActiveBuilds_Temp[i]);
         }
     }
 
@@ -454,6 +459,11 @@ public partial class Network : Node
             {
                 continue;
             }
+            // This node has an active build
+            if (ActiveBuilds.Any(a => a.NodeID == sender.Value.ID))
+            {
+                continue;
+            }
 
             int val = Math.Min(buildCostTick, sender.Value.GetResource(resource));
             val = Math.Min(val, (int)amountRequired);
@@ -480,7 +490,6 @@ public partial class Network : Node
 
         node.AddChild(component);
         node.components.Add(component);
-        ActiveBuilds.Remove(build);
         foreach (var cost in build.Costs)
         {
             node.LoseResourceImmediate(cost.Key, (int)cost.Value, component);
