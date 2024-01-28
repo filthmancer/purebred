@@ -13,7 +13,8 @@ public partial class Network : Node
     {
         public int NodeID;
         public string ComponentID;
-        public int TargetCost;
+        public Dictionary<string, float> Costs;
+        public int Install_Ticks;
     }
 
     public struct TransferData
@@ -22,6 +23,7 @@ public partial class Network : Node
         public int FromID, ToID;
         public int Amount;
         public string Type;
+        public float Speed;
     }
 
     public class TransferVisuals
@@ -382,56 +384,86 @@ public partial class Network : Node
     public void TickActiveBuilds()
     {
         _ActiveBuilds_Temp = new List<ComponentBuildData>(ActiveBuilds);
-        int buildCostTick = 3;
-        int amountRequired = 0;
+
         for (int i = 0; i < _ActiveBuilds_Temp.Count; i++)
         {
             var build = _ActiveBuilds_Temp[i];
             ServerNode target = nodeInstances[build.NodeID];
-            amountRequired = build.TargetCost - target.Credits;
-            //# If we already have enough credits to complete this
-            if (amountRequired <= 0)
+            bool resourcesTransferred = true;
+            foreach (var cost in build.Costs)
             {
-                CompleteActiveBuild(build);
-                continue;
-            }
-
-            foreach (var transfer in ActiveTransfers.FindAll(t => t.ToID == target.ID))
-            {
-                amountRequired -= transfer.Amount;
-            }
-            GD.Print("Build: " + build.ComponentID + ": needed : " + amountRequired);
-            //# if there are enough credits on their way, don't create more transfers
-            if (amountRequired <= 0)
-            {
-                continue;
-            }
-
-            foreach (var sender in nodeInstances)
-            {
-                if (sender.Value == target) continue;
-                // This node has no credits
-                if (sender.Value.Credits == 0)
+                if (GenerateRequiredTransfer(build.ComponentID, cost.Key, cost.Value, target))
                 {
-                    continue;
+                    resourcesTransferred = false;
                 }
+            }
 
-                var path = pathfinding.GetIdPath((int)sender.Value.ID, (int)target.ID);
-                //Invalid Path
-                if (path.Length == 0)
+            if (resourcesTransferred)
+            {
+                // Start installing
+                if (build.Install_Ticks > 0)
                 {
-                    continue;
+                    GD.Print($"INSTALLING: {build.Install_Ticks}");
+                    build.Install_Ticks--;
+                    ActiveBuilds[i] = build;
                 }
-
-                int val = Math.Min(buildCostTick, sender.Value.Credits);
-                val = Math.Min(val, amountRequired);
-                if (val == 0) break;
-
-                amountRequired -= val;
-
-                TransferResource("credits", val, target, sender.Value);
+                else
+                {
+                    // If we are completed install
+                    CompleteActiveBuild(build);
+                }
             }
         }
+    }
+
+    private bool GenerateRequiredTransfer(string ID, string resource, float totalCost, ServerNode target)
+    {
+        int buildCostTick = 3;
+        float amountRequired = totalCost - target.Credits;
+        //# If we already have enough credits to complete this
+        if (amountRequired <= 0)
+        {
+            return false;
+        }
+
+        foreach (var transfer in ActiveTransfers.FindAll(t => t.ToID == target.ID))
+        {
+            amountRequired -= transfer.Amount;
+        }
+        //# if there are enough credits on their way, don't create more transfers
+        if (amountRequired <= 0)
+        {
+            return false;
+        }
+
+        GD.Print($"Build: {ID} + {resource} needed : {amountRequired}");
+
+        foreach (var sender in nodeInstances)
+        {
+            // This node is the target node
+            if (sender.Value == target) continue;
+            // This node has no credits
+            if (sender.Value.GetResource(resource) <= 0)
+            {
+                continue;
+            }
+
+            var path = pathfinding.GetIdPath((int)sender.Value.ID, (int)target.ID);
+            //No valid path
+            if (path.Length == 0)
+            {
+                continue;
+            }
+
+            int val = Math.Min(buildCostTick, sender.Value.GetResource(resource));
+            val = Math.Min(val, (int)amountRequired);
+            if (val == 0) break;
+
+            amountRequired -= val;
+
+            TransferResource(resource, val, target, sender.Value);
+        }
+        return true;
     }
 
     private void CompleteActiveBuild(ComponentBuildData build)
@@ -449,7 +481,10 @@ public partial class Network : Node
         node.AddChild(component);
         node.components.Add(component);
         ActiveBuilds.Remove(build);
-        node.LoseResourceImmediate("credits", build.TargetCost, component);
+        foreach (var cost in build.Costs)
+        {
+            node.LoseResourceImmediate(cost.Key, (int)cost.Value, component);
+        }
     }
 
     #region Resources
@@ -462,10 +497,51 @@ public partial class Network : Node
             FromID = from.ID,
             ToID = to.ID,
             Type = type,
-            Amount = amount
+            Amount = amount,
+            Speed = 1,
         };
         ActiveTransfers.Add(transfer);
-        from.LoseResourceImmediate(type, amount, to);
+        if (from.RemoveComponent(type, out Node3D node))
+        {
+            _ActiveTransfers_Objects[transfer.ID] = new TransferVisuals()
+            {
+                Object = node,
+                startPosition = from.Position,
+                endPosition = to.Position,
+                rate = 1
+            };
+            AddChild(node);
+            node.Position = from.Position;
+        }
+        else from.LoseResourceImmediate(type, amount, to);
+    }
+    public void TransferComponent(string type, ServerNode to, ServerNode from)
+    {
+        if (from.RemoveComponent(type, out Node3D node))
+        {
+            var componentData = main.GetComponent(type);
+
+            var transfer = new TransferData()
+            {
+                ID = Guid.NewGuid(),
+                FromID = from.ID,
+                ToID = to.ID,
+                Type = type,
+                Amount = 1,
+                Speed = 2 / componentData.Transfer_Ticks,
+            };
+            ActiveTransfers.Add(transfer);
+
+            _ActiveTransfers_Objects[transfer.ID] = new TransferVisuals()
+            {
+                Object = node,
+                startPosition = from.Position,
+                endPosition = to.Position,
+                rate = 1
+            };
+            AddChild(node);
+            node.Position = from.Position;
+        }
     }
 
     public void TickActiveTransfers(float delta)
@@ -479,7 +555,8 @@ public partial class Network : Node
 
             if (!_ActiveTransfers_Objects.ContainsKey(transfer.ID))
             {
-                var instance = prefab.Instantiate<Node3D>();
+                Node3D instance = prefab.Instantiate<Node3D>();
+
                 _ActiveTransfers_Objects[transfer.ID] = new TransferVisuals()
                 {
                     Object = instance,
@@ -510,7 +587,7 @@ public partial class Network : Node
                 visuals.endPosition = nextPoint.Position;
                 visuals.rate = 0;
             }
-            visuals.rate = Mathf.Clamp(visuals.rate + delta * 2, 0, 1);
+            visuals.rate = Mathf.Clamp(visuals.rate + delta * transfer.Speed, 0, 1);
             visuals.Object.Position = visuals.startPosition.Lerp(visuals.endPosition, visuals.rate);
             //Task.Run(async () => await MoveObjectTo(startingPosition, endingPosition, instance));
         }

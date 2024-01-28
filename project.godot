@@ -29,6 +29,10 @@ project/assembly_name="Purebred"
 
 enabled=PackedStringArray("res://addons/pluginloader/plugin.cfg")
 
+[filesystem]
+
+import/fbx/enabled=false
+
 [input]
 
 cam_right={

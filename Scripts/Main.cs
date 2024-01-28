@@ -46,15 +46,31 @@ public partial class Main : Node3D
     public override void _UnhandledInput(InputEvent @event)
     {
         Vector3 pos = cam_parent.Position;
+        GD.Print(@event);
 
         if (@event is InputEventMagnifyGesture magnifyGesture)
         {
-            mainCamera.Size = Math.Clamp(mainCamera.Size * magnifyGesture.Factor, mainCamera_zoomThreshold.X, mainCamera_zoomThreshold.Y);
+            mainCamera.Size = Math.Clamp(mainCamera.Size / magnifyGesture.Factor, mainCamera_zoomThreshold.X, mainCamera_zoomThreshold.Y);
         }
         else if (@event is InputEventPanGesture panGesture)
         {
             pos += cam_parent.Basis.X * (panGesture.Delta.X * zoomFactor);
             pos += cam_parent.Basis.Z * (panGesture.Delta.Y * zoomFactor);
+        }
+        else if (@event is InputEventMouseButton mouseButton)
+        {
+            switch (mouseButton.ButtonIndex)
+            {
+                case MouseButton.WheelDown:
+                    mainCamera.Size = Math.Clamp(mainCamera.Size * 1.02F, mainCamera_zoomThreshold.X, mainCamera_zoomThreshold.Y);
+                    break;
+                case MouseButton.WheelUp:
+                    mainCamera.Size = Math.Clamp(mainCamera.Size * 0.98F, mainCamera_zoomThreshold.X, mainCamera_zoomThreshold.Y);
+                    break;
+                case MouseButton.Left:
+
+                    break;
+            }
         }
     }
 
@@ -85,7 +101,6 @@ public partial class Main : Node3D
 
     private void ProcessCameraInput(double delta)
     {
-
         var newInput = new Vector3();
         if (Input.IsActionPressed("cam_right"))
         {
@@ -118,14 +133,13 @@ public partial class Main : Node3D
             _applied_velocity *= 0.92F;
             if (_applied_velocity.Length() < 0.001F) _applied_velocity = Vector3.Zero;
         }
-
-        _applied_velocity = _input_velocity * keyboardCameraSpeed * (float)delta * zoomFactor;
+        else _applied_velocity = _input_velocity * keyboardCameraSpeed * (float)delta * zoomFactor;
 
         Vector3 pos = cam_parent.Position;
         pos += _applied_velocity;
 
-        pos.X = Math.Clamp(pos.X, -10, 10);
-        pos.Z = Math.Clamp(pos.Z, -10, 10);
+        pos.X = Math.Clamp(pos.X, -20, 20);
+        pos.Z = Math.Clamp(pos.Z, -20, 20);
         cam_parent.Position = pos;
     }
 
@@ -213,51 +227,16 @@ public partial class Main : Node3D
         if (server.Credits < cost)
             return false;
 
-        // int SubtractFromPool(ref int pool, int amount)
-        // {
-        //     int sub = Math.Min(amount, pool);
-        //     pool -= sub;
-        //     return amount - sub;
-        // }
-
-        // Dictionary<int, int> subtractedAmounts = new Dictionary<int, int>();
-        // int leftover = node.Credits;
-        // int ID = node.ID;
-        // int remaining = cost;
-        // do
-        // {
-        //     node = server.nodeInstances[ID];
-        //     leftover = node.Credits;
-        //     // GD.Print($"Subtracting {remaining} from {node.Name()}, {leftover}");
-        //     remaining = SubtractFromPool(ref leftover, remaining);
-        //     // GD.Print($"{remaining} cost remaining, {leftover} leftover on {node.Name()}");
-        //     subtractedAmounts[ID] = node.Credits - leftover;
-        //     if (remaining > 0)
-        //     {
-        //         var nbours = node.GetNeighbours();
-        //         var nextNode = nbours.FirstOrDefault(n => n.Credits > 0 && !subtractedAmounts.ContainsKey(n.ID));
-        //         if (nextNode == null)
-        //             nextNode = nbours.FirstOrDefault(n => !subtractedAmounts.ContainsKey(n.ID));
-        //         if (nextNode == null)
-        //             nextNode = server.nodeInstances.FirstOrDefault(n => !subtractedAmounts.ContainsKey(n.Key)).Value;
-
-        //         ID = nextNode.ID;
-        //     }
-        // }
-        // while (remaining > 0);
-
-        // if (remaining > 0)
-        // {
-        //     return false;
-        // }
-
-        // foreach (var sub in subtractedAmounts)
-        // {
-        //     server.nodeInstances[sub.Key].Credits -= sub.Value;
-        // }
-        // server.Credits -= cost;
-
         return true;
+    }
+
+    public RComponent GetComponent(string id)
+    {
+        if (serverComponents.ContainsKey(id))
+        {
+            return serverComponents[id];
+        }
+        return null;
     }
 
     public bool LoadServer(string id)

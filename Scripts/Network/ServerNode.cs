@@ -291,7 +291,12 @@ public partial class ServerNode : InteractableArea3D, IDisposablePoolResource, I
         {
             NodeID = this.ID,
             ComponentID = id,
-            TargetCost = componentResource.cost,
+            Costs = new Dictionary<string, float>()
+            {
+                {"credits", componentResource.Cost_Credits},
+                {"data", componentResource.Cost_Data}
+            },
+            Install_Ticks = componentResource.Install_Ticks
         };
         server.AddActiveBuild(activeBuild);
         return true;
@@ -319,6 +324,18 @@ public partial class ServerNode : InteractableArea3D, IDisposablePoolResource, I
     public bool HasComponent(string id)
     {
         return components.Find(n => n.Get("ID").ToString() == id) != null;
+    }
+
+    public bool RemoveComponent(string id, out Node3D component)
+    {
+        component = components.Find(n => n.Get("ID").AsString() == id);
+        if (component != null)
+        {
+            components.Remove(component);
+            server.AddChild(component);
+            return true;
+        }
+        return false;
     }
 
 
@@ -372,6 +389,18 @@ public partial class ServerNode : InteractableArea3D, IDisposablePoolResource, I
                 Data -= amount;
                 break;
         }
+    }
+
+    public int GetResource(string type)
+    {
+        switch (type)
+        {
+            case "credits":
+                return Credits;
+            case "data":
+                return Data;
+        }
+        return -1;
     }
     #endregion
 }

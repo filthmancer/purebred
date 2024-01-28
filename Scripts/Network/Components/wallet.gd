@@ -32,10 +32,6 @@ func on_tick():
 					if comp is Miner:
 						var routedCredits = min(creditsRouteRate, nbour.Credits);
 						nodeInstance.server.TransferResource("credits", routedCredits, nodeInstance, nbour);
-
-# Called every frame. 'delta' is the elapsed time since the previous frame.
-func _process(delta):
-	pass
 	
 func get_heat():
 	return 0;
