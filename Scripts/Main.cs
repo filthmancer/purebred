@@ -39,54 +39,7 @@ public partial class Main : Node3D
     private static Dictionary<string, RServer> serverScenes = new Dictionary<string, RServer>();
 
     private Node3D cam_parent;
-    private readonly Vector2 mainCamera_zoomThreshold = new Vector2(5, 30);
-    private Vector3 _input_velocity, _applied_velocity;
 
-    //* Panning has less effect the smaller the camera size is
-    float zoomFactor => Math.Clamp(1 - mainCamera_zoomThreshold.X / mainCamera.Size, 0.1F, 2);
-    bool isMouseDragging = false;
-    Vector2 mouseDragInitialPosition, mouseDragDelta;
-    public override void _UnhandledInput(InputEvent @event)
-    {
-        Vector3 pos = cam_parent.Position;
-        if (@event is InputEventMagnifyGesture magnifyGesture)
-        {
-            mainCamera.Size = Math.Clamp(mainCamera.Size / magnifyGesture.Factor, mainCamera_zoomThreshold.X, mainCamera_zoomThreshold.Y);
-        }
-        else if (@event is InputEventPanGesture panGesture)
-        {
-            pos += cam_parent.Basis.X * (panGesture.Delta.X * zoomFactor);
-            pos += cam_parent.Basis.Z * (panGesture.Delta.Y * zoomFactor);
-        }
-        else if (@event is InputEventMouseButton mouseButton)
-        {
-
-            switch (mouseButton.ButtonIndex)
-            {
-                case MouseButton.WheelDown:
-                    mainCamera.Size = Math.Clamp(mainCamera.Size * 1.02F, mainCamera_zoomThreshold.X, mainCamera_zoomThreshold.Y);
-                    break;
-                case MouseButton.WheelUp:
-                    mainCamera.Size = Math.Clamp(mainCamera.Size * 0.98F, mainCamera_zoomThreshold.X, mainCamera_zoomThreshold.Y);
-                    break;
-                case MouseButton.Left:
-                    if (isMouseDragging != mouseButton.IsPressed())
-                    {
-                        isMouseDragging = mouseButton.IsPressed();
-                        mouseDragInitialPosition = mouseButton.Position;
-                    }
-                    break;
-            }
-        }
-        else if (@event is InputEventMouseMotion mouseMotion)
-        {
-            if (isMouseDragging)
-            {
-                mouseDragDelta = mouseMotion.Position - mouseDragInitialPosition;
-                mouseDragInitialPosition = mouseMotion.Position;
-            }
-        }
-    }
 
     public override void _Ready()
     {
@@ -111,92 +64,6 @@ public partial class Main : Node3D
     {
         ProcessCameraInput(delta);
         ProcessFocusTarget(delta);
-    }
-
-    private void ProcessCameraInput(double delta)
-    {
-        var newInput = new Vector3();
-        if (isMouseDragging)
-        {
-            newInput += cam_parent.Basis.X * mouseDragDelta.X * 0.2F;
-            newInput += cam_parent.Basis.Z * mouseDragDelta.Y * 0.2F;//new Vector3(cam_parent.Basis.X.X * -mouseDragDelta.X, 0, cam_parent.Basis.Z.Z * -mouseDragDelta.Y);
-            mouseDragDelta = Vector2.Zero;
-        }
-        if (Input.IsActionPressed("cam_right"))
-        {
-            newInput += -cam_parent.Basis.X;
-        }
-        if (Input.IsActionPressed("cam_left"))
-        {
-            newInput += cam_parent.Basis.X;
-        }
-        if (Input.IsActionPressed("cam_up"))
-        {
-            newInput += cam_parent.Basis.Z;
-        }
-        if (Input.IsActionPressed("cam_down"))
-        {
-            newInput += -cam_parent.Basis.Z;
-        }
-        if (newInput == Vector3.Zero)
-            _input_velocity = Vector3.Zero;
-        else
-        {
-            _input_velocity += newInput;
-            isTargeting = false;
-        }
-
-        //_input_velocity = _input_velocity.Normalized();
-
-        if (_input_velocity == Vector3.Zero)
-        {
-            _applied_velocity *= 0.92F;
-            if (_applied_velocity.Length() < 0.001F) _applied_velocity = Vector3.Zero;
-        }
-        else _applied_velocity = _input_velocity * keyboardCameraSpeed * (float)delta * zoomFactor;
-
-        Vector3 pos = cam_parent.Position;
-        pos += _applied_velocity;
-
-        pos.X = Math.Clamp(pos.X, -20, 20);
-        pos.Z = Math.Clamp(pos.Z, -20, 20);
-        cam_parent.Position = pos;
-    }
-
-    private bool isTargeting = false;
-    private Node3D target;
-    private Vector3 targeting_startingPosition;
-    private float targeting_time = 0.0F;
-    private void ProcessFocusTarget(double delta)
-    {
-        if (server.interactable_selected != null)
-        {
-            if (server.interactable_selected != target)
-            {
-                isTargeting = false;
-            }
-            if (Input.IsActionJustPressed("focus"))
-            {
-                isTargeting = true;
-                target = server.interactable_selected;
-                targeting_startingPosition = cam_parent.Position;
-                targeting_time = 0F;
-            }
-        }
-        else
-            isTargeting = false;
-
-        if (isTargeting)
-        {
-            var position = (server.interactable_selected is InteractableActor) ? (server.interactable_selected.GetParent() as Node3D).Position :
-                                                                                server.interactable_selected.Position;
-
-            targeting_time = Math.Clamp(targeting_time + (float)delta * 4, 0F, 1F);
-
-            if (cam_parent.Position.DistanceTo(position) > 0.5F)
-                cam_parent.Position = targeting_startingPosition.Lerp(position, targeting_time);
-            else cam_parent.Position = position;
-        }
     }
 
     private void SetupActor(Network s)
@@ -258,6 +125,152 @@ public partial class Main : Node3D
         }
         return null;
     }
+
+    #region Input
+
+    //* Panning has less effect the smaller the camera size is
+    private bool _input_isMouseDragging = false;
+    private Vector2 _input_mouse_initialPosition, _input_mouse_dragDelta;
+
+    //Length limit on drag speed
+    private static float _input_cameraDrag_maxSpeed = 4;
+    private Vector3 _input_cameraDrag_velocity, _input_cameraDrag_appliedVelocity;
+
+    private readonly Vector2 input_cameraZoom_thresholds = new Vector2(5, 30);
+    private float _input_zoomFactor => Math.Clamp(1 - input_cameraZoom_thresholds.X / mainCamera.Size, 0.1F, 2);
+
+
+
+
+
+    public override void _UnhandledInput(InputEvent @event)
+    {
+        if (@event is InputEventMagnifyGesture magnifyGesture)
+        {
+            mainCamera.Size = Math.Clamp(mainCamera.Size / magnifyGesture.Factor, input_cameraZoom_thresholds.X, input_cameraZoom_thresholds.Y);
+        }
+        else if (@event is InputEventPanGesture panGesture)
+        {
+            _input_mouse_dragDelta = panGesture.Delta;
+            _input_mouse_initialPosition = panGesture.Position;
+            _input_isMouseDragging = (_input_mouse_dragDelta.Length() > 0.1);
+        }
+        else if (@event is InputEventMouseButton mouseButton)
+        {
+            switch (mouseButton.ButtonIndex)
+            {
+                case MouseButton.WheelDown:
+                    mainCamera.Size = Math.Clamp(mainCamera.Size * 1.02F, input_cameraZoom_thresholds.X, input_cameraZoom_thresholds.Y);
+                    break;
+                case MouseButton.WheelUp:
+                    mainCamera.Size = Math.Clamp(mainCamera.Size * 0.98F, input_cameraZoom_thresholds.X, input_cameraZoom_thresholds.Y);
+                    break;
+                case MouseButton.Left:
+                    if (_input_isMouseDragging != mouseButton.IsPressed())
+                    {
+                        _input_isMouseDragging = mouseButton.IsPressed();
+                        _input_mouse_initialPosition = mouseButton.Position;
+                    }
+                    break;
+            }
+        }
+        else if (@event is InputEventMouseMotion mouseMotion)
+        {
+            if (_input_isMouseDragging)
+            {
+                _input_mouse_dragDelta = mouseMotion.Position - _input_mouse_initialPosition;
+                _input_mouse_initialPosition = mouseMotion.Position;
+            }
+        }
+    }
+
+    private void ProcessCameraInput(double delta)
+    {
+        var newInput = new Vector3();
+        if (_input_isMouseDragging)
+        {
+            newInput += cam_parent.Basis.X * _input_mouse_dragDelta.X;
+            newInput += cam_parent.Basis.Z * _input_mouse_dragDelta.Y;
+            _input_mouse_dragDelta = Vector2.Zero;
+        }
+        if (Input.IsActionPressed("cam_right"))
+        {
+            newInput += -cam_parent.Basis.X;
+        }
+        if (Input.IsActionPressed("cam_left"))
+        {
+            newInput += cam_parent.Basis.X;
+        }
+        if (Input.IsActionPressed("cam_up"))
+        {
+            newInput += cam_parent.Basis.Z;
+        }
+        if (Input.IsActionPressed("cam_down"))
+        {
+            newInput += -cam_parent.Basis.Z;
+        }
+        if (newInput == Vector3.Zero)
+            _input_cameraDrag_velocity = Vector3.Zero;
+        else
+        {
+            _input_cameraDrag_velocity += newInput;
+            _focus_isTargeting = false;
+        }
+
+        _input_cameraDrag_velocity = _input_cameraDrag_velocity.LimitLength(_input_cameraDrag_maxSpeed);
+
+        if (_input_cameraDrag_velocity == Vector3.Zero)
+        {
+            _input_cameraDrag_appliedVelocity *= 0.92F;
+            if (_input_cameraDrag_appliedVelocity.Length() < 0.001F) _input_cameraDrag_appliedVelocity = Vector3.Zero;
+        }
+        else _input_cameraDrag_appliedVelocity = _input_cameraDrag_velocity * keyboardCameraSpeed * (float)delta * _input_zoomFactor;
+
+        Vector3 pos = cam_parent.Position;
+        pos += _input_cameraDrag_appliedVelocity;
+
+        pos.X = Math.Clamp(pos.X, -20, 20);
+        pos.Z = Math.Clamp(pos.Z, -20, 20);
+        cam_parent.Position = pos;
+    }
+
+    private bool _focus_isTargeting = false;
+    private Node3D _focus_target;
+    private Vector3 _focus_target_startingPosition;
+    private float _focus_target_activeTime = 0.0F;
+
+    private void ProcessFocusTarget(double delta)
+    {
+        if (server.interactable_selected != null)
+        {
+            if (server.interactable_selected != _focus_target)
+            {
+                _focus_isTargeting = false;
+            }
+            if (Input.IsActionJustPressed("focus"))
+            {
+                _focus_isTargeting = true;
+                _focus_target = server.interactable_selected;
+                _focus_target_startingPosition = cam_parent.Position;
+                _focus_target_activeTime = 0F;
+            }
+        }
+        else
+            _focus_isTargeting = false;
+
+        if (_focus_isTargeting)
+        {
+            var position = (server.interactable_selected is InteractableActor) ? (server.interactable_selected.GetParent() as Node3D).Position :
+                                                                                server.interactable_selected.Position;
+
+            _focus_target_activeTime = Math.Clamp(_focus_target_activeTime + (float)delta * 4, 0F, 1F);
+
+            if (cam_parent.Position.DistanceTo(position) > 0.5F)
+                cam_parent.Position = _focus_target_startingPosition.Lerp(position, _focus_target_activeTime);
+            else cam_parent.Position = position;
+        }
+    }
+    #endregion
 
     public bool LoadServer(string id)
     {
