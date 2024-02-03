@@ -72,7 +72,6 @@ public partial class Main : Node3D
                 case MouseButton.Left:
                     if (isMouseDragging != mouseButton.IsPressed())
                     {
-                        GD.Print("SETTING PRESSED " + mouseButton.IsPressed());
                         isMouseDragging = mouseButton.IsPressed();
                         mouseDragInitialPosition = mouseButton.Position;
                     }

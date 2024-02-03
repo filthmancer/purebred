@@ -145,10 +145,10 @@ func enter_highlight(node):
 func exit_highlight(node):
 	target = null;
 	tooltip_exit()
-	#if server.interactable_selected != null:
-	#	return;
-	#$description_box.hide();
-	#$name_text.hide();
+	if server.interactable_selected != null:
+		return;
+	$description_box.hide();
+	$name_text.hide();
 	#for comp in highlight_components:
 	#	comp.queue_free();
 	#	highlight_components.erase(comp);
