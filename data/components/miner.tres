@@ -8,9 +8,10 @@
 script = ExtResource("2_s7soi")
 ID = "miner"
 packedScene = ExtResource("1_yo7o0")
-cost = 30
-Cost_Credits = 30
-Cost_Data = 0
 Install_Ticks = 5
 Transfer_Ticks = 0
 icon = ExtResource("1_lmw55")
+PurchaseCost_Credits = 25
+PurchaseCost_Data = 0
+InstallCost_Credits = 0
+InstallCost_Data = 30

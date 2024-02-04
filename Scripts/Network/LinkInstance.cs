@@ -13,18 +13,18 @@ public partial class LinkInstance : InteractableArea3D, IDisposablePoolResource,
 
     private Network server;
 
-    public List<ServerNode> Nodes;
+    public List<ILinkable> Nodes;
     public List<Vector3> Points => render.Points;
 
     public int ID => IDFromNodes(Nodes[0], Nodes[1]);
 
-    public static int IDFromNodes(ServerNode nodeA, ServerNode nodeB)
+    public static int IDFromNodes(ILinkable nodeA, ILinkable nodeB)
     {
         return (nodeA.ID * 100) + (nodeB.ID * 10000);
     }
     public string Description()
     {
-        string desc = $"Links {Nodes[0].Name()} and {Nodes[1].Name()}. ";
+        string desc = $"Links {Nodes[0].ID} and {Nodes[1].ID}. ";
         foreach (var flag in System.Enum.GetValues(typeof(Network.LinkFlags)))
         {
             if ((Network.LinkFlags)flag == Network.LinkFlags.None) continue;
@@ -35,7 +35,7 @@ public partial class LinkInstance : InteractableArea3D, IDisposablePoolResource,
 
     public string Name()
     {
-        return $"Link: {Nodes[0].Name()} -> {Nodes[1].Name()}";
+        return $"Link: {Nodes[0].ID} -> {Nodes[1].ID}";
     }
 
     private static PackedScene prefab;
@@ -61,11 +61,16 @@ public partial class LinkInstance : InteractableArea3D, IDisposablePoolResource,
 
     public void Initialise(Network _server, ServerNode[] _nodes)
     {
+        Initialise(_server, new List<ILinkable>(_nodes));
+    }
+
+    public void Initialise(Network _server, List<ILinkable> _linkables)
+    {
         server = _server;
-        Nodes = new List<ServerNode>(_nodes);
-        for (int i = 0; i < _nodes.Length; i++)
+        Nodes = _linkables;
+        for (int i = 0; i < _linkables.Count; i++)
         {
-            render.AddPoint(_nodes[i].Position - this.Position);
+            render.AddPoint(_linkables[i].Position - this.Position);
         }
         render.RegenerateLine();
 

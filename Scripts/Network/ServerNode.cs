@@ -5,15 +5,18 @@ using System.Linq;
 using System.Threading.Tasks;
 [Tool]
 [GlobalClass]
-public partial class ServerNode : InteractableArea3D, IDisposablePoolResource, IDescribableNode
+public partial class ServerNode : InteractableArea3D, IDisposablePoolResource, IDescribableNode, ILinkable
 {
 
     public Vector2 Position2D => new Vector2(Position.X, Position.Z);
     public IDisposablePool Pool { get; set; }
     [Export]
     public int ID;
+    int ILinkable.ID => ID;
     [Export]
     public Godot.Collections.Array<ServerNode> linked_nodes;
+    [Export]
+    public bool RemoteAccess;
     [Export]
     public Network.NodeFlags Flags;
 
@@ -283,18 +286,18 @@ public partial class ServerNode : InteractableArea3D, IDisposablePoolResource, I
         if (components.Count >= ComponentMax)
             return false;
 
-        // Attempts to purchase the item
-        if (!server.main.PurchaseItem(id, this, out RComponent componentResource))
+        //  Checks if this item can be installed
+        if (!server.main.CanInstallItem(id, this, out RComponent componentResource))
             return false;
 
-        var activeBuild = new Network.ComponentBuildData()
+        var activeBuild = new ComponentBuildTask()
         {
             NodeID = this.ID,
             ComponentID = id,
             Costs = new Dictionary<string, float>()
             {
-                {"credits", componentResource.Cost_Credits},
-                {"data", componentResource.Cost_Data}
+                {"credits", componentResource.InstallCost_Credits},
+                {"data", componentResource.InstallCost_Data}
             },
             Install_Ticks = componentResource.Install_Ticks
         };

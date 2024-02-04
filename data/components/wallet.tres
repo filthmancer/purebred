@@ -8,5 +8,10 @@
 script = ExtResource("1_yr41f")
 ID = "wallet"
 packedScene = ExtResource("1_dxgt7")
-cost = 100
+Install_Ticks = 0
+Transfer_Ticks = 0
 icon = ExtResource("1_m1551")
+PurchaseCost_Credits = 100
+PurchaseCost_Data = 0
+InstallCost_Credits = 0
+InstallCost_Data = 50

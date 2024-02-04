@@ -72,6 +72,7 @@ linked_nodes = [NodePath("../NODE - 18")]
 transform = Transform3D(1, 0.000523599, 0, -0.000523599, 1, 0, 0, 0, 1, -19, 0.00994838, -9)
 ID = 10
 linked_nodes = [NodePath("../NODE - 19")]
+RemoteAccess = true
 
 [node name="NODE - 23" parent="." node_paths=PackedStringArray("linked_nodes") instance=ExtResource("2_6448p")]
 transform = Transform3D(1, 0.000523599, 0, -0.000523599, 1, 0, 0, 0, 1, -19, 0.00994838, 9)
@@ -87,6 +88,7 @@ linked_nodes = [NodePath("../NODE - 27")]
 transform = Transform3D(1, 0.000523599, 0, -0.000523599, 1, 0, 0, 0, 1, 19, -0.00994838, -9)
 ID = 13
 linked_nodes = [NodePath("../NODE - 28")]
+RemoteAccess = true
 
 [node name="NODE - 26" parent="." node_paths=PackedStringArray("linked_nodes") instance=ExtResource("2_6448p")]
 transform = Transform3D(1, 0.000523599, 0, -0.000523599, 1, 0, 0, 0, 1, 19, -0.00994838, 9)

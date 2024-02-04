@@ -14,14 +14,14 @@ var node_buttons = ["miner", "cage", "heatsink", "wallet"];
 var link_buttons = ["firewall"];
 # Called when the node enters the scene tree for the first time.
 func _ready():
-	
 	var main = get_node("/root/Main");
 	main.connect("ServerGenerationComplete", get_server);
 	main.connect("InteractableOver", enter_highlight);
 	main.connect("InteractableExit", exit_highlight);
 	main.connect("HighlightSelected", select_highlight);
 	main.connect("HighlightDeselected", deselect_highlight);
-
+	main.connect("OnMarketPurchaseCompleted", on_purchase);
+	node_buttons = main.GetPurchasedIDs();
 	generate_button_data();
 	
 	button_data["firewall"] = {
@@ -35,11 +35,13 @@ func _ready():
 
 func generate_button_data():
 	for buttontype in node_buttons:
+		if button_data.has(buttontype):
+			continue;
 		var script = load("res://Scripts/Network/Components/" + buttontype + ".gd");
 		var res = load("res://data/components/" + buttontype + ".tres");
 		button_data[buttontype] = {
 			id = buttontype,
-			cost= res.get("cost"),
+			cost= res.get("Credits"),
 			name= script.get("StaticName") if script.get("StaticName") != null else buttontype,
 			description = script.get("StaticDescription"),
 		};
@@ -145,7 +147,7 @@ func enter_highlight(node):
 func exit_highlight(node):
 	target = null;
 	tooltip_exit()
-	if server.interactable_selected != null:
+	if server == null || server.interactable_selected != null:
 		return;
 	$description_box.hide();
 	$name_text.hide();
@@ -182,25 +184,18 @@ func button_select(id):
 	if server.interactable_selected != null:
 		server.interactable_selected.BuildComponent(id);
 		
+		
 func component_button_press():
 	if server.interactable_selected != null :
 		server.interactable_selected.BuildComponent("cage");
 		
-func miner_button_press():
-	if server.interactable_selected != null:
-		server.interactable_selected.BuildComponent("miner");
+func on_purchase(id):
+	var main = get_node("/root/Main");
+	node_buttons = main.GetPurchasedIDs();
+	generate_button_data();
 	
-func move_button_press():
-	get_node("/root/Main").emit_signal("MoveActors", server.interactable_selected);
 	
 func firewall_button_press():
 	if server.interactable_selected != null :
 		server.interactable_selected.BuildComponent("firewall");
 		
-func heatsink_button_press():
-	if server.interactable_selected != null:
-		server.interactable_selected.BuildComponent("heatsink");
-		
-func wallet_button_press():
-	if server.interactable_selected != null:
-		server.interactable_selected.BuildComponent("wallet");

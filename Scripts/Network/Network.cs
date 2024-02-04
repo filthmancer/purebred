@@ -9,13 +9,6 @@ using System.Threading.Tasks;
 [Tool]
 public partial class Network : Node
 {
-    public struct ComponentBuildData
-    {
-        public int NodeID;
-        public string ComponentID;
-        public Dictionary<string, float> Costs;
-        public int Install_Ticks;
-    }
 
     public struct TransferData
     {
@@ -34,10 +27,10 @@ public partial class Network : Node
         public float rate = 0;
     }
 
-    private static List<ComponentBuildData> ActiveBuilds = new List<ComponentBuildData>();
-    private static List<ComponentBuildData> _ActiveBuilds_Temp = new List<ComponentBuildData>();
-    private static List<TransferData> ActiveTransfers = new List<TransferData>();
-    private static List<TransferData> _ActiveTransfers_Temp = new List<TransferData>();
+    public List<NetworkTask> ActiveBuilds = new List<NetworkTask>();
+    private List<NetworkTask> _ActiveBuilds_Temp = new List<NetworkTask>();
+    public List<TransferData> ActiveTransfers = new List<TransferData>();
+    private List<TransferData> _ActiveTransfers_Temp = new List<TransferData>();
     private static Dictionary<Guid, TransferVisuals> _ActiveTransfers_Objects = new Dictionary<Guid, TransferVisuals>();
     private NetworkData serverData;
 
@@ -88,7 +81,7 @@ public partial class Network : Node
     private InteractableArea3D interactable_highlighted;
     public InteractableArea3D interactable_selected { get; private set; }
 
-    private AStar2D pathfinding;
+    public AStar2D pathfinding { get; private set; }
     public override void _Ready()
     {
     }
@@ -200,7 +193,6 @@ public partial class Network : Node
             nodeInstance.InitialiseInteractionEvents(main);
             nodeInstance.Connect("mouse_entered", Callable.From(() => SetTargetNode(nodeInstance, true)));
             nodeInstance.Connect("mouse_exited", Callable.From(() => SetTargetNode(nodeInstance, false)));
-
         }
 
         for (int l = 0; l < serverData.Links.Count; l++)
@@ -213,7 +205,7 @@ public partial class Network : Node
         }
     }
 
-    private LinkInstance Visuals_LinkBetween(ServerNode nodeA, ServerNode nodeB)
+    private LinkInstance Visuals_LinkBetween(ILinkable nodeA, ILinkable nodeB)
     {
         if (linkInstances.ContainsKey(LinkInstance.IDFromNodes(nodeA, nodeB)))
         {
@@ -225,7 +217,7 @@ public partial class Network : Node
         Vector3 linkPos = nodeB.Position - (nodeB.Position - nodeA.Position) / 2;
         linkInstance.Position = linkPos;
 
-        linkInstance.Initialise(this, new ServerNode[2] { nodeA, nodeB });
+        linkInstance.Initialise(this, new List<ILinkable>() { nodeA, nodeB });
 
         linkInstance.render.Connect("mouse_entered", Callable.From(() => SetTargetNode(linkInstance, true)));
         linkInstance.render.Connect("mouse_exited", Callable.From(() => SetTargetNode(linkInstance, false)));
@@ -260,9 +252,9 @@ public partial class Network : Node
     /// <returns></returns>
     public Node3D Visuals_GenerateComponent(string id)
     {
-        if (Main.serverComponents.ContainsKey(id))
+        if (Main.marketComponents.ContainsKey(id))
         {
-            var comp = Main.serverComponents[id].packedScene.Instantiate();
+            var comp = Main.marketComponents[id].packedScene.Instantiate();
             // comp.Connect("mouse_entered", Callable.From(() => SetTargetNode(comp, true)));
             // comp.Connect("mouse_exited", Callable.From(() => SetTargetNode(comp, false)));
             return comp as Node3D;
@@ -377,43 +369,30 @@ public partial class Network : Node
         return nodeInstances[main.rng.RandiRange(0, nodeInstances.Count - 1)];
     }
 
-    public void AddActiveBuild(ComponentBuildData activeBuild)
+    public void AddActiveBuild(NetworkTask activeBuild)
     {
         ActiveBuilds.Add(activeBuild);
     }
     public void TickActiveBuilds()
     {
-        _ActiveBuilds_Temp = new List<ComponentBuildData>();
+        _ActiveBuilds_Temp = new List<NetworkTask>();
 
         for (int i = 0; i < ActiveBuilds.Count; i++)
         {
             var build = ActiveBuilds[i];
-            ServerNode target = nodeInstances[build.NodeID];
-            bool resourcesTransferred = true;
-            foreach (var cost in build.Costs)
+            //            ServerNode target = nodeInstances[build.NodeID];
+            //bool resourcesTransferred = true;
+            if (!build.Update(this))
             {
-                if (GenerateRequiredTransfer(build.ComponentID, cost.Key, cost.Value, target))
-                {
-                    resourcesTransferred = false;
-                }
+                _ActiveBuilds_Temp.Add(build);
             }
-
-            if (resourcesTransferred)
-            {
-                // Start installing
-                if (build.Install_Ticks > 0)
-                {
-                    GD.Print($"INSTALLING: {build.Install_Ticks}");
-                    build.Install_Ticks--;
-                    ActiveBuilds[i] = build;
-                }
-                else
-                {
-                    // If we are completed install
-                    CompleteActiveBuild(build);
-                    _ActiveBuilds_Temp.Add(build);
-                }
-            }
+            // foreach (var cost in build.Costs)
+            // {
+            //     if (GenerateRequiredTransfer(cost.Key, cost.Value, target))
+            //     {
+            //         resourcesTransferred = false;
+            //     }
+            // }
         }
         for (int i = 0; i < _ActiveBuilds_Temp.Count; i++)
         {
@@ -421,7 +400,7 @@ public partial class Network : Node
         }
     }
 
-    private bool GenerateRequiredTransfer(string ID, string resource, float totalCost, ServerNode target)
+    private bool GenerateRequiredTransfer(string resource, float totalCost, ServerNode target)
     {
         int buildCostTick = 3;
         float amountRequired = totalCost - target.Credits;
@@ -441,7 +420,7 @@ public partial class Network : Node
             return false;
         }
 
-        GD.Print($"Build: {ID} + {resource} needed : {amountRequired}");
+        // GD.Print($"Build: {ID} + {resource} needed : {amountRequired}");
 
         foreach (var sender in nodeInstances)
         {
@@ -476,25 +455,7 @@ public partial class Network : Node
         return true;
     }
 
-    private void CompleteActiveBuild(ComponentBuildData build)
-    {
-        var node = nodeInstances[build.NodeID];
-        var component = Visuals_GenerateComponent(build.ComponentID);
-        if (component == null)
-        {
-            GD.PushError($"SERVERNODE.BUILDCOMPONENT: {build.ComponentID} was not found in component dictionary");
-            return;
-        }
-        component.Position = Vector3.Zero;
-        component.Call("initialise", node);
 
-        node.AddChild(component);
-        node.components.Add(component);
-        foreach (var cost in build.Costs)
-        {
-            node.LoseResourceImmediate(cost.Key, (int)cost.Value, component);
-        }
-    }
 
     #region Resources
 
@@ -804,4 +765,10 @@ public partial class Network : Node
         public LinkFlags Flags;
     }
     #endregion
+}
+
+public interface ILinkable
+{
+    public int ID { get; }
+    public Vector3 Position { get; }
 }

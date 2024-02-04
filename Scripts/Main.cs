@@ -27,6 +27,8 @@ public partial class Main : Node3D
     [Signal]
     public delegate void ServerGenerationCompleteEventHandler(Network server);
     [Signal]
+    public delegate void OnMarketPurchaseCompletedEventHandler(string purchaseID);
+    [Signal]
     public delegate void MoveActorsEventHandler(string id);
     [Signal]
     public delegate void OnTickEventHandler();
@@ -34,7 +36,8 @@ public partial class Main : Node3D
     public static Pool<ServerNode> pool_serverNode = new Pool<ServerNode>(50, p => ServerNode.Instantiate(p), PoolLoadingMode.Lazy);
     public static Pool<LinkInstance> pool_linkInstance = new Pool<LinkInstance>(50, p => LinkInstance.Instantiate(p), PoolLoadingMode.Lazy);
 
-    public static Dictionary<string, RComponent> serverComponents = new Dictionary<string, RComponent>();
+    public static Dictionary<string, RComponent> marketComponents = new Dictionary<string, RComponent>();
+    public static Dictionary<string, RComponent> purchasedComponents = new Dictionary<string, RComponent>();
 
     private static Dictionary<string, RServer> serverScenes = new Dictionary<string, RServer>();
 
@@ -45,7 +48,7 @@ public partial class Main : Node3D
     {
         cam_parent = GetNode<Node3D>("CamParent");
 
-        ServerGenerationComplete += SetupActor;
+        //ServerGenerationComplete += SetupActor;
 
         foreach (var server in File.LoadObjects<RServer>(AssetPaths.Servers))
         {
@@ -54,14 +57,19 @@ public partial class Main : Node3D
 
         foreach (var component in File.LoadObjects<RComponent>(AssetPaths.Components))
         {
-            serverComponents[component.ID] = component;
+            marketComponents[component.ID] = component;
         }
+        //purchasedComponents = marketComponents;
 
         LoadServer("server_a");
     }
 
     public override void _Process(double delta)
     {
+        if (Input.IsActionJustPressed("buy"))
+        {
+            PurchaseItemFromMarket("wallet");
+        }
         ProcessCameraInput(delta);
         ProcessFocusTarget(delta);
     }
@@ -102,26 +110,72 @@ public partial class Main : Node3D
         return false;
     }
 
-    public bool PurchaseItem(string id, ServerNode node, out RComponent componentResource)
+    public bool CanInstallItem(string id, ServerNode node, out RComponent componentResource)
     {
         componentResource = null;
-        if (!serverComponents.ContainsKey(id))
+        if (!purchasedComponents.ContainsKey(id))
             return false;
 
-        componentResource = serverComponents[id];
+        componentResource = purchasedComponents[id];
 
-        int cost = serverComponents[id].cost;
-        if (server.Credits < cost)
+        int Cost_Credits = purchasedComponents[id].InstallCost_Credits;
+        if (server.Credits < Cost_Credits)
             return false;
 
+        int Cost_Data = purchasedComponents[id].InstallCost_Data;
+        if (server.Data < Cost_Data)
+            return false;
         return true;
+    }
+
+    public bool PurchaseItemFromMarket(string id)
+    {
+        if (!marketComponents.ContainsKey(id))
+            return false;
+
+        int Cost_Credits = marketComponents[id].PurchaseCost_Credits;
+        if (server.Credits < Cost_Credits)
+            return false;
+
+        int Cost_Data = marketComponents[id].PurchaseCost_Data;
+        if (server.Data < Cost_Data)
+            return false;
+
+        server.AddActiveBuild(new RemoteTransferTask()
+        {
+            NodeID = -1,
+            OnCompletion = () => CompletePurchase(id),
+            Costs = new Dictionary<string, float>()
+            {
+                {"credits", Cost_Credits},
+                {"data", Cost_Data}
+            },
+            Install_Ticks = 1
+        });
+        return true;
+    }
+
+    public void CompletePurchase(string purchaseID)
+    {
+        purchasedComponents.Add(purchaseID, marketComponents[purchaseID]);
+        EmitGodotSignal(nameof(OnMarketPurchaseCompleted), purchaseID);
+    }
+
+    public string[] GetPurchasedIDs()
+    {
+        return purchasedComponents.Keys.ToArray();
+    }
+
+    public string[] GetMarketIDs()
+    {
+        return marketComponents.Keys.ToArray();
     }
 
     public RComponent GetComponent(string id)
     {
-        if (serverComponents.ContainsKey(id))
+        if (marketComponents.ContainsKey(id))
         {
-            return serverComponents[id];
+            return marketComponents[id];
         }
         return null;
     }
@@ -139,10 +193,6 @@ public partial class Main : Node3D
     private readonly Vector2 input_cameraZoom_thresholds = new Vector2(5, 30);
     private float _input_zoomFactor => Math.Clamp(1 - input_cameraZoom_thresholds.X / mainCamera.Size, 0.1F, 2);
 
-
-
-
-
     public override void _UnhandledInput(InputEvent @event)
     {
         if (@event is InputEventMagnifyGesture magnifyGesture)
@@ -151,9 +201,9 @@ public partial class Main : Node3D
         }
         else if (@event is InputEventPanGesture panGesture)
         {
-            _input_mouse_dragDelta = panGesture.Delta;
+            _input_mouse_dragDelta = panGesture.Delta * 3;
             _input_mouse_initialPosition = panGesture.Position;
-            _input_isMouseDragging = (_input_mouse_dragDelta.Length() > 0.1);
+            _input_isMouseDragging = _input_mouse_dragDelta.Length() > 0.05F;
         }
         else if (@event is InputEventMouseButton mouseButton)
         {
