@@ -1,26 +1,17 @@
 [gd_resource type="Resource" load_steps=7 format=3 uid="uid://h7hn0hffkbkv"]
 
 [ext_resource type="Texture2D" uid="uid://dle1aj6mno21l" path="res://Assets/art/wenrexa/СommonElement/Icon03.png" id="1_5e423"]
-[ext_resource type="Script" path="res://Scripts/Data/RCosts.cs" id="1_gx2h2"]
 [ext_resource type="PackedScene" uid="uid://bot0dy1ofcfpr" path="res://data/components/scenes/heatsink.tscn" id="1_xgmyk"]
 [ext_resource type="Script" path="res://Scripts/Data/RComponent.cs" id="2_mqvf4"]
-
-[sub_resource type="Resource" id="Resource_ofpeo"]
-script = ExtResource("1_gx2h2")
-Credits = 0
-Data = 0
-
-[sub_resource type="Resource" id="Resource_tv40f"]
-script = ExtResource("1_gx2h2")
-Credits = 200
-Data = 0
 
 [resource]
 script = ExtResource("2_mqvf4")
 ID = "cage"
 packedScene = ExtResource("1_xgmyk")
-PurchaseCosts = SubResource("Resource_tv40f")
-InstallCosts = SubResource("Resource_ofpeo")
 Install_Ticks = 0
 Transfer_Ticks = 0
 icon = ExtResource("1_5e423")
+PurchaseCost_Credits = 100
+PurchaseCost_Data = 0
+InstallCost_Credits = 0
+InstallCost_Data = 50
