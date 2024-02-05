@@ -291,6 +291,7 @@ public partial class Main : Node3D
 
     private void ProcessFocusTarget(double delta)
     {
+        if (server == null) return;
         if (server.interactable_selected != null)
         {
             if (server.interactable_selected != _focus_target)
