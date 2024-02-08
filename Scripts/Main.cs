@@ -40,12 +40,11 @@ public partial class Main : Node3D
     public static Dictionary<string, RComponent> purchasedComponents = new Dictionary<string, RComponent>();
 
     public static Dictionary<string, RComponent> marketPrograms = new Dictionary<string, RComponent>();
-    public static Dictionary<string, Node3D> purchasedPrograms = new Dictionary<string, Node3D>();
+    public static Dictionary<string, List<Node3D>> purchasedPrograms = new Dictionary<string, List<Node3D>>();
 
     private static Dictionary<string, RServer> serverScenes = new Dictionary<string, RServer>();
 
     private Node3D cam_parent;
-
 
     public override void _Ready()
     {
@@ -163,7 +162,11 @@ public partial class Main : Node3D
     public void CompletePurchase(RemoteTransferTask task)
     {
         //purchasedComponents.Add(purchaseID, marketComponents[purchaseID]);
-        purchasedPrograms.Add(task.TaskID, server.Visuals_GenerateProgram(marketComponents[task.TaskID], server.nodeInstances[task.NodeID]));
+        if (!purchasedPrograms.ContainsKey(task.TaskID))
+        {
+            purchasedPrograms[task.TaskID] = new List<Node3D>();
+        }
+        purchasedPrograms[task.TaskID].Add(server.Visuals_GenerateProgram(marketComponents[task.TaskID], server.nodeInstances[task.NodeID]));
 
         EmitGodotSignal(nameof(OnMarketPurchaseCompleted), task.TaskID);
     }

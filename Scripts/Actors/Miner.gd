@@ -9,45 +9,72 @@ var mine_tick = 1;
 
 func initialise(_server, node_target):
 	super.initialise(_server, node_target)
+	rng = RandomNumberGenerator.new();
 	_server.main.connect("OnTick", on_tick)
 	update_target();
 
 # Called every frame. 'delta' is the elapsed time since the previous frame.
 func _process(delta):
+	update_move(delta)
 	if state == "wander":
-		if path != null and path.size() > 0:
-			move_to_next_path_point(delta);
+		if path == null || path.size() == 0:
+			state = "mine"
 	pass
 	
 func on_tick():
-	if state == "wander":
-		timer -= 1;
-		if timer <= 0:
-			update_target();
-			
-		if node_current is LinkInstance && node_current.IsFirewall():
-			path = [node_last];
-		elif node_current is ServerNode && node_current.HasComponent("cage"):
-			state = "trapped"
-			print("trapped on ", node_current);
-	elif state == "trapped":
+	var next_state = "wander"
+	if !(node_current is ServerNode):
+		return;
+	if state == "mine":
+		node_current.GainResource("credits", mine_tick, self)
 		if node_current is ServerNode:
-			if !node_current.HasComponent("cage"):
-				state = "wander";
-				print("wandering");
-	elif state == "mine":
-		if node_current is ServerNode:
-			node_current.GainResource("credits", mine_tick, self)
-			update_target();	
+			var minechance = calculate_mine_chance(node_current)
+			if minechance:
+				next_state = "mine"
+			else:
+				next_state = "wander";
+				update_target()
+	elif state == "wander":
+		if path == null || path.size() == 0:
+			timer -= 1;
+			if timer <= 0:
+				update_target()
+		
+	if node_current.HasComponent("cage"):
+		next_state = "trapped"
+		
+	state = next_state
 	
 
 func update_target():
+	timer = rng.randi_range(10, 25);
+	var targets = server.GetAllNeighbours(node_current, 1);
 	
-	if node_current is ServerNode && node_current.Heat < 10 && node_current.Credits < 10:
-		state = "mine";
-	else:
-		state = "wander"
-		timer = rng.randi_range(10, 25);
-		var target = server.GetRandomNode();
-		path = server.GetPathFromTo(node_current.ID, target.ID, ["avoid_firewalls"]);
+	var index = rng.randi_range(0, targets.size()-1)
+	
+	var heat_check = 100;
+	for t in targets:
+		if t.Heat < heat_check:
+			index = targets.find(t)
+			heat_check = t.Heat
+	
+	move_to_node(targets[index], ["avoid_firewalls"]);
+	#path = server.GetPathFromTo(node_current.ID, targets[index].ID, ["avoid_firewalls"]);
+	
 	pass;
+	
+func calculate_mine_chance(node):
+	var minechance = 1.0;
+	timer -= 1;
+	if timer > 0:
+		return true;
+	# remove chance based on current credits on this node
+	minechance -= clamp(node_current.Credits / 500, 0.0, 0.5);
+	# remove chance based on current heat on this node
+	var heat = float(node_current.Heat) / float(node_current.HeatMax) * 0.2;
+	heat = clampf(heat, 0.0, 0.2);
+	minechance -= heat;
+	return rng.randf() < minechance;
+	
+func get_heat():
+	return 0.5;

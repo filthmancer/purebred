@@ -1,6 +1,7 @@
 extends Control
 
 const ServerNode = preload("res://Scripts/Network/ServerNode.cs");
+const ServerComponent = preload("res://Scripts/Network/Components/ServerComponent.gd")
 const LinkInstance = preload("res://Scripts/Network/LinkInstance.cs");
 const IDescribable = preload("res://Scripts/InteractableArea3D.cs")
 const Main = preload("res://Scripts/Main.cs")
@@ -128,12 +129,13 @@ func update_highlight_description(node):
 			highlight_components.erase(comp);
 		if node is ServerNode:
 			for comp in node.GetComponents():
-				var newcomp = $description_box/Components/component.duplicate();
-				newcomp.show();
-				newcomp.get_node("description_text").set_text(comp.Description())
-				newcomp.get_node("name_text").set_text(comp.Name());
-				$description_box/Components.add_child(newcomp);
-				highlight_components.append(newcomp);
+				if comp is ServerComponent:
+					var newcomp = $description_box/Components/component.duplicate();
+					newcomp.show();
+					newcomp.get_node("description_text").set_text(comp.Description())
+					newcomp.get_node("name_text").set_text(comp.Name());
+					$description_box/Components.add_child(newcomp);
+					highlight_components.append(newcomp);
 	pass
 	
 func enter_highlight(node):

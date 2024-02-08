@@ -1,9 +1,8 @@
-[gd_scene load_steps=5 format=3 uid="uid://c2iwn3pjkyodl"]
+[gd_scene load_steps=4 format=3 uid="uid://c2iwn3pjkyodl"]
 
 [ext_resource type="Script" path="res://Scripts/Network/Network.cs" id="1_edfxn"]
 [ext_resource type="PackedScene" uid="uid://dummxnsurwjro" path="res://scenes/ServerNode.tscn" id="2_6448p"]
 [ext_resource type="PackedScene" uid="uid://d0v0fciug0wey" path="res://data/components/scenes/miner.tscn" id="3_ge168"]
-[ext_resource type="PackedScene" uid="uid://basykodf3h8cr" path="res://data/components/scenes/wallet.tscn" id="3_ilips"]
 
 [node name="serverc" type="Node"]
 script = ExtResource("1_edfxn")
@@ -11,39 +10,44 @@ script = ExtResource("1_edfxn")
 [node name="NODE - 0" parent="." node_paths=PackedStringArray("linked_nodes") instance=ExtResource("2_6448p")]
 transform = Transform3D(1, 0.000523599, 0, -0.000523599, 1, 0, 0, 0, 1, -6, 0.00314159, 2.08165e-12)
 linked_nodes = [NodePath("../NODE - 18"), NodePath("../NODE - 19"), NodePath("../NODE - 20"), NodePath("../NODE - 7"), NodePath("../NODE - 8")]
-
-[node name="wallet" parent="NODE - 0" instance=ExtResource("3_ilips")]
+HeatMax_initial = 100
 
 [node name="NODE - 7" parent="." node_paths=PackedStringArray("linked_nodes") instance=ExtResource("2_6448p")]
 transform = Transform3D(1, 0.000523599, 0, -0.000523599, 1, 0, 0, 0, 1, 0, 2.32831e-10, -4)
 ID = 1
 linked_nodes = [NodePath("../NODE - 0"), NodePath("../NODE - 9")]
+HeatMax_initial = 100
 Credits = 100
 
 [node name="NODE - 9" parent="." node_paths=PackedStringArray("linked_nodes") instance=ExtResource("2_6448p")]
 transform = Transform3D(1, 0.000523599, 0, -0.000523599, 1, 0, 0, 0, 1, 6, -0.00314159, 0)
 ID = 2
 linked_nodes = [NodePath("../NODE - 7"), NodePath("../NODE - 8"), NodePath("../NODE - 28"), NodePath("../NODE - 29"), NodePath("../NODE - 27")]
+HeatMax_initial = 100
 
 [node name="NODE - 8" parent="." node_paths=PackedStringArray("linked_nodes") instance=ExtResource("2_6448p")]
 transform = Transform3D(1, 0.000523599, 0, -0.000523599, 1, 0, 0, 0, 1, 0, 2.32831e-10, 4)
 ID = 3
 linked_nodes = [NodePath("../NODE - 0"), NodePath("../NODE - 9"), NodePath("../NODE - 16"), NodePath("../NODE - 17")]
+HeatMax_initial = 100
 
 [node name="NODE - 16" parent="." node_paths=PackedStringArray("linked_nodes") instance=ExtResource("2_6448p")]
 transform = Transform3D(1, 0.000523599, 0, -0.000523599, 1, 0, 0, 0, 1, -5, 0.002618, 9)
 ID = 4
 linked_nodes = [NodePath("../NODE - 8")]
+HeatMax_initial = 100
 
 [node name="NODE - 17" parent="." node_paths=PackedStringArray("linked_nodes") instance=ExtResource("2_6448p")]
 transform = Transform3D(1, 0.000523599, 0, -0.000523599, 1, 0, 0, 0, 1, 5, -0.00261799, 9)
 ID = 5
 linked_nodes = [NodePath("../NODE - 8")]
+HeatMax_initial = 100
 
 [node name="NODE - 18" parent="." node_paths=PackedStringArray("linked_nodes") instance=ExtResource("2_6448p")]
 transform = Transform3D(1, 0.000523599, 0, -0.000523599, 1, 0, 0, 0, 1, -11.9999, 0.206283, 2.08165e-12)
 ID = 6
 linked_nodes = [NodePath("../NODE - 21"), NodePath("../NODE - 0")]
+HeatMax_initial = 100
 
 [node name="miner" parent="NODE - 18" instance=ExtResource("3_ge168")]
 
@@ -51,61 +55,67 @@ linked_nodes = [NodePath("../NODE - 21"), NodePath("../NODE - 0")]
 transform = Transform3D(1, 0.000523599, 0, -0.000523599, 1, 0, 0, 0, 1, -12, 0.00628319, -5)
 ID = 7
 linked_nodes = [NodePath("../NODE - 22"), NodePath("../NODE - 0")]
-
-[node name="miner" parent="NODE - 19" instance=ExtResource("3_ge168")]
+HeatMax_initial = 100
 
 [node name="NODE - 20" parent="." node_paths=PackedStringArray("linked_nodes") instance=ExtResource("2_6448p")]
 transform = Transform3D(1, 0.000523599, 0, -0.000523599, 1, 0, 0, 0, 1, -12, 0.00628319, 5)
 ID = 8
 linked_nodes = [NodePath("../NODE - 23"), NodePath("../NODE - 0")]
-
-[node name="miner" parent="NODE - 20" instance=ExtResource("3_ge168")]
+HeatMax_initial = 100
 
 [node name="NODE - 21" parent="." node_paths=PackedStringArray("linked_nodes") instance=ExtResource("2_6448p")]
 transform = Transform3D(1, 0.000523599, 0, -0.000523599, 1, 0, 0, 0, 1, -19, 0.00994838, 2.08165e-12)
 ID = 9
 linked_nodes = [NodePath("../NODE - 18")]
-
-[node name="miner" parent="NODE - 21" instance=ExtResource("3_ge168")]
+HeatMax_initial = 100
 
 [node name="NODE - 22" parent="." node_paths=PackedStringArray("linked_nodes") instance=ExtResource("2_6448p")]
 transform = Transform3D(1, 0.000523599, 0, -0.000523599, 1, 0, 0, 0, 1, -19, 0.00994838, -9)
 ID = 10
 linked_nodes = [NodePath("../NODE - 19")]
 RemoteAccess = true
+HeatMax_initial = 100
+Credits = 50
 
 [node name="NODE - 23" parent="." node_paths=PackedStringArray("linked_nodes") instance=ExtResource("2_6448p")]
 transform = Transform3D(1, 0.000523599, 0, -0.000523599, 1, 0, 0, 0, 1, -19, 0.00994838, 9)
 ID = 11
 linked_nodes = [NodePath("../NODE - 20")]
+HeatMax_initial = 100
 
 [node name="NODE - 24" parent="." node_paths=PackedStringArray("linked_nodes") instance=ExtResource("2_6448p")]
 transform = Transform3D(1, 0.000523599, 0, -0.000523599, 1, 0, 0, 0, 1, 19, -0.00994838, 2.08165e-12)
 ID = 12
 linked_nodes = [NodePath("../NODE - 27")]
+HeatMax_initial = 100
 
 [node name="NODE - 25" parent="." node_paths=PackedStringArray("linked_nodes") instance=ExtResource("2_6448p")]
 transform = Transform3D(1, 0.000523599, 0, -0.000523599, 1, 0, 0, 0, 1, 19, -0.00994838, -9)
 ID = 13
 linked_nodes = [NodePath("../NODE - 28")]
 RemoteAccess = true
+HeatMax_initial = 100
 
 [node name="NODE - 26" parent="." node_paths=PackedStringArray("linked_nodes") instance=ExtResource("2_6448p")]
 transform = Transform3D(1, 0.000523599, 0, -0.000523599, 1, 0, 0, 0, 1, 19, -0.00994838, 9)
 ID = 14
 linked_nodes = [NodePath("../NODE - 29")]
+HeatMax_initial = 100
 
 [node name="NODE - 27" parent="." node_paths=PackedStringArray("linked_nodes") instance=ExtResource("2_6448p")]
 transform = Transform3D(1, 0.000523599, 0, -0.000523599, 1, 0, 0, 0, 1, 12, -0.00628319, 2.08165e-12)
 ID = 15
 linked_nodes = [NodePath("../NODE - 9"), NodePath("../NODE - 24")]
+HeatMax_initial = 100
 
 [node name="NODE - 28" parent="." node_paths=PackedStringArray("linked_nodes") instance=ExtResource("2_6448p")]
 transform = Transform3D(1, 0.000523599, 0, -0.000523599, 1, 0, 0, 0, 1, 12, -0.00628319, -5)
 ID = 16
 linked_nodes = [NodePath("../NODE - 9"), NodePath("../NODE - 25")]
+HeatMax_initial = 100
 
 [node name="NODE - 29" parent="." node_paths=PackedStringArray("linked_nodes") instance=ExtResource("2_6448p")]
 transform = Transform3D(1, 0.000523599, 0, -0.000523599, 1, 0, 0, 0, 1, 12, -0.00628319, 5)
 ID = 17
 linked_nodes = [NodePath("../NODE - 9"), NodePath("../NODE - 26")]
+HeatMax_initial = 100

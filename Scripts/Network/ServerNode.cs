@@ -41,7 +41,7 @@ public partial class ServerNode : InteractableArea3D, IDisposablePoolResource, I
     public int DataMax = 100;
     private int DataMax_components = 0;
 
-    private float Credits_thisTick, Data_thisTick;
+    private float Credits_thisTick, Data_thisTick, Heat_thisTick;
     public Dictionary<int, float> Credits_thisTick_transferred = new Dictionary<int, float>();
 
     [Export]
@@ -224,14 +224,14 @@ public partial class ServerNode : InteractableArea3D, IDisposablePoolResource, I
 
     public void UpdateHeat()
     {
-        Heat = 0;
+        Heat_thisTick = -1.0F;
         HeatMax = HeatMax_initial;
         foreach (var comp in components)
         {
-            Heat += comp.Call("get_heat").As<int>();
+            Heat_thisTick += comp.Call("get_heat").As<float>();
             HeatMax += comp.Call("get_heatmax").As<int>();
         }
-        Heat = Math.Clamp(Heat, 0, HeatMax);
+        Heat = Math.Clamp(Heat + (int)Heat_thisTick, 0, HeatMax);
     }
 
     public int GetDataMax()
@@ -303,6 +303,16 @@ public partial class ServerNode : InteractableArea3D, IDisposablePoolResource, I
         };
         server.AddActiveBuild(activeBuild);
         return true;
+    }
+
+    public void AddComponent(Node3D component)
+    {
+        components.Add(component);
+    }
+
+    public void RemoveComponent(Node3D component)
+    {
+        components.Remove(component);
     }
 
     public bool DestroyComponent(Node3D comp)
@@ -404,6 +414,11 @@ public partial class ServerNode : InteractableArea3D, IDisposablePoolResource, I
                 return Data;
         }
         return -1;
+    }
+
+    public void GainHeat(int amount)
+    {
+        Heat = Mathf.Clamp(Heat + amount, 0, HeatMax);
     }
     #endregion
 }
