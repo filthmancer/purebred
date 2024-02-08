@@ -245,6 +245,22 @@ public partial class Network : Node
         return actorInstance;
     }
 
+    public Node3D Visuals_GenerateProgram(RComponent data, ServerNode node)
+    {
+        if (!nodeInstances.ContainsValue(node))
+        {
+            return null;
+        }
+        var instance = data.packedScene.Instantiate<Node3D>();
+        instance.Position = node.Position;
+        AddChild(instance);
+        instance.Call("initialise", this, node);
+        (instance.GetNode("interactable") as InteractableActor).InitialiseInteractionEvents(main);
+        instance.Connect("mouse_entered", Callable.From(() => SetTargetNode((instance.GetNode("interactable") as InteractableActor), true)));
+        instance.Connect("mouse_exited", Callable.From(() => SetTargetNode((instance.GetNode("interactable") as InteractableActor), false)));
+        return instance;
+    }
+
     /// <summary>
     /// Returns target component if it is in the main library
     /// </summary>

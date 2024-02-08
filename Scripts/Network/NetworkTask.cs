@@ -100,10 +100,11 @@ public class ComponentBuildTask : NetworkTask
 
 public class RemoteTransferTask : NetworkTask
 {
-    public Action OnCompletion;
+    public string TaskID;
+    public Action<RemoteTransferTask> OnCompletion;
     public override void Complete(Network network)
     {
-        OnCompletion?.Invoke();
+        OnCompletion?.Invoke(this);
         var node = network.nodeInstances[NodeID];
         foreach (var cost in Costs)
         {

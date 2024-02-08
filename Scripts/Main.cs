@@ -39,6 +39,9 @@ public partial class Main : Node3D
     public static Dictionary<string, RComponent> marketComponents = new Dictionary<string, RComponent>();
     public static Dictionary<string, RComponent> purchasedComponents = new Dictionary<string, RComponent>();
 
+    public static Dictionary<string, RComponent> marketPrograms = new Dictionary<string, RComponent>();
+    public static Dictionary<string, Node3D> purchasedPrograms = new Dictionary<string, Node3D>();
+
     private static Dictionary<string, RServer> serverScenes = new Dictionary<string, RServer>();
 
     private Node3D cam_parent;
@@ -55,10 +58,11 @@ public partial class Main : Node3D
             serverScenes[server.ID] = server;
         }
 
-        foreach (var component in File.LoadObjects<RComponent>(AssetPaths.Components))
+        foreach (var component in File.LoadObjects<RComponent>(AssetPaths.Programs))
         {
             marketComponents[component.ID] = component;
         }
+
         //purchasedComponents = marketComponents;
 
         LoadServer("server_a");
@@ -144,7 +148,8 @@ public partial class Main : Node3D
         server.AddActiveBuild(new RemoteTransferTask()
         {
             NodeID = -1,
-            OnCompletion = () => CompletePurchase(id),
+            TaskID = id,
+            OnCompletion = CompletePurchase,
             Costs = new Dictionary<string, float>()
             {
                 {"credits", Cost_Credits},
@@ -155,10 +160,12 @@ public partial class Main : Node3D
         return true;
     }
 
-    public void CompletePurchase(string purchaseID)
+    public void CompletePurchase(RemoteTransferTask task)
     {
-        purchasedComponents.Add(purchaseID, marketComponents[purchaseID]);
-        EmitGodotSignal(nameof(OnMarketPurchaseCompleted), purchaseID);
+        //purchasedComponents.Add(purchaseID, marketComponents[purchaseID]);
+        purchasedPrograms.Add(task.TaskID, server.Visuals_GenerateProgram(marketComponents[task.TaskID], server.nodeInstances[task.NodeID]));
+
+        EmitGodotSignal(nameof(OnMarketPurchaseCompleted), task.TaskID);
     }
 
     public string[] GetPurchasedIDs()
@@ -383,6 +390,7 @@ public static class AssetPaths
     public const string Virus = "res://scenes/virus.tscn";
     public const string Servers = "servers";
     public const string Components = "components";
+    public const string Programs = "programs";
 
     public const string Credits = "res://data/CreditChunk.tscn";
 }

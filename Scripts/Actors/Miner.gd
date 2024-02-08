@@ -1,23 +1,16 @@
 extends "res://Scripts/Actors/Actor.gd"
 
+
 var rng;
-var timer;
+var timer = 0;
 var state = "wander"
+var mine_tick = 1;
 
-var damage = 0.3;
 
-# Called when the node enters the scene tree for the first time.
-func _ready():
-	rng = RandomNumberGenerator.new();
-	target_pos = position;
-	
-	pass # Replace with function body.
-	
 func initialise(_server, node_target):
 	super.initialise(_server, node_target)
-	server.main.connect("OnTick", on_tick)
+	_server.main.connect("OnTick", on_tick)
 	update_target();
-
 
 # Called every frame. 'delta' is the elapsed time since the previous frame.
 func _process(delta):
@@ -42,22 +35,19 @@ func on_tick():
 			if !node_current.HasComponent("cage"):
 				state = "wander";
 				print("wandering");
-				
-	if node_current is ServerNode:
-		for comp in node_current.GetComponents():
-			comp.durability -= damage;
-		
+	elif state == "mine":
+		if node_current is ServerNode:
+			node_current.GainResource("credits", mine_tick, self)
+			update_target();	
 	
+
 func update_target():
-	timer = rng.randi_range(10, 25);
-	var target = server.GetRandomNode();
-	path = server.GetPathFromTo(node_current.ID, target.ID, ["avoid_firewalls"]);
 	
-func highlighted(target):
+	if node_current is ServerNode && node_current.Heat < 10 && node_current.Credits < 10:
+		state = "mine";
+	else:
+		state = "wander"
+		timer = rng.randi_range(10, 25);
+		var target = server.GetRandomNode();
+		path = server.GetPathFromTo(node_current.ID, target.ID, ["avoid_firewalls"]);
 	pass;
-	
-func name():
-	return "Virus";
-	
-func description():
-	return "Wanders aimlessly, attacks local components.";
