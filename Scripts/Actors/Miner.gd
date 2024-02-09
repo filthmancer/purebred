@@ -1,10 +1,10 @@
 extends "res://Scripts/Actors/Actor.gd"
 
-
+const Miner = preload ("res://Scripts/Actors/Miner.gd")
 var rng;
 var timer = 0;
 var state = "wander"
-var mine_tick = 1;
+var mine_tick = 0.1
 
 
 func initialise(_server, node_target):
@@ -49,15 +49,30 @@ func on_tick():
 func update_target():
 	timer = rng.randi_range(10, 25);
 	var targets = server.GetAllNeighbours(node_current, 1);
-	
-	var index = rng.randi_range(0, targets.size()-1)
-	
-	var heat_check = 100;
+	var targetvalues = []
+		
+	var index = 0
+	var total = 0.0
 	for t in targets:
-		if t.Heat < heat_check:
-			index = targets.find(t)
-			heat_check = t.Heat
+		targetvalues.append(1)
+		for comp in t.GetComponents():
+			if comp is Miner:
+				targetvalues[index] += 1
+		var targetheat = float(1+ t.Heat) 
+		var currentHeat = float(1 + node_current.Heat)
+		targetvalues[index] += 1 / (targetheat/currentHeat )
+		total += targetvalues[index]
+		index+=1
 	
+	var accrued = 0.0
+	index = 0
+	for t in targetvalues:
+		accrued += t
+		var rand = rng.randf()
+		if rand < (accrued /  total):
+			break;
+		index+=1
+		
 	move_to_node(targets[index], ["avoid_firewalls"]);
 	#path = server.GetPathFromTo(node_current.ID, targets[index].ID, ["avoid_firewalls"]);
 	
@@ -77,4 +92,4 @@ func calculate_mine_chance(node):
 	return rng.randf() < minechance;
 	
 func get_heat():
-	return 0.5;
+	return 1;

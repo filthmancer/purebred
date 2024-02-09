@@ -16,6 +16,7 @@ HeatMax_initial = 100
 transform = Transform3D(1, 0.000523599, 0, -0.000523599, 1, 0, 0, 0, 1, 0, 2.32831e-10, -4)
 ID = 1
 linked_nodes = [NodePath("../NODE - 0"), NodePath("../NODE - 9")]
+RemoteAccess = true
 HeatMax_initial = 100
 Credits = 100
 
@@ -75,7 +76,6 @@ ID = 10
 linked_nodes = [NodePath("../NODE - 19")]
 RemoteAccess = true
 HeatMax_initial = 100
-Credits = 50
 
 [node name="NODE - 23" parent="." node_paths=PackedStringArray("linked_nodes") instance=ExtResource("2_6448p")]
 transform = Transform3D(1, 0.000523599, 0, -0.000523599, 1, 0, 0, 0, 1, -19, 0.00994838, 9)

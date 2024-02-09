@@ -29,6 +29,8 @@ public partial class Network : Node
 
     public List<NetworkTask> ActiveBuilds = new List<NetworkTask>();
     private List<NetworkTask> _ActiveBuilds_Temp = new List<NetworkTask>();
+    private Queue<NetworkTask> QueuedBuilds = new Queue<NetworkTask>();
+    private Dictionary<int, Queue<NetworkTask>> BuildQueues = new Dictionary<int, Queue<NetworkTask>>();
     public List<TransferData> ActiveTransfers = new List<TransferData>();
     private List<TransferData> _ActiveTransfers_Temp = new List<TransferData>();
     private static Dictionary<Guid, TransferVisuals> _ActiveTransfers_Objects = new Dictionary<Guid, TransferVisuals>();
@@ -387,91 +389,37 @@ public partial class Network : Node
 
     public void AddActiveBuild(NetworkTask activeBuild)
     {
-        ActiveBuilds.Add(activeBuild);
+        /* if (ActiveBuilds.Find(a => a.NodeID == activeBuild.NodeID) != null)
+        {
+            QueuedBuilds.Append(activeBuild);
+        }
+        else ActiveBuilds.Add(activeBuild); */
+        if (!BuildQueues.ContainsKey(activeBuild.NodeID))
+        {
+            BuildQueues[activeBuild.NodeID] = new Queue<NetworkTask>();
+        }
+        BuildQueues[activeBuild.NodeID].Enqueue(activeBuild);
     }
     public void TickActiveBuilds()
     {
         _ActiveBuilds_Temp = new List<NetworkTask>();
+        NetworkTask activetask;
 
-        for (int i = 0; i < ActiveBuilds.Count; i++)
+        foreach (int key in BuildQueues.Keys)
         {
-            var build = ActiveBuilds[i];
-            //            ServerNode target = nodeInstances[build.NodeID];
-            //bool resourcesTransferred = true;
-            if (!build.Update(this))
+            if (BuildQueues[key].Count == 0) return;
+            activetask = BuildQueues[key].Peek();
+            if (!activetask.Update(this))
             {
-                _ActiveBuilds_Temp.Add(build);
+                BuildQueues[key].Dequeue();
             }
-            // foreach (var cost in build.Costs)
-            // {
-            //     if (GenerateRequiredTransfer(cost.Key, cost.Value, target))
-            //     {
-            //         resourcesTransferred = false;
-            //     }
-            // }
-        }
-        for (int i = 0; i < _ActiveBuilds_Temp.Count; i++)
-        {
-            ActiveBuilds.Remove(_ActiveBuilds_Temp[i]);
         }
     }
 
-    private bool GenerateRequiredTransfer(string resource, float totalCost, ServerNode target)
+    public bool NodeHasActiveBuild(int nodeID)
     {
-        int buildCostTick = 3;
-        float amountRequired = totalCost - target.Credits;
-        //# If we already have enough credits to complete this
-        if (amountRequired <= 0)
-        {
-            return false;
-        }
-
-        foreach (var transfer in ActiveTransfers.FindAll(t => t.ToID == target.ID))
-        {
-            amountRequired -= transfer.Amount;
-        }
-        //# if there are enough credits on their way, don't create more transfers
-        if (amountRequired <= 0)
-        {
-            return false;
-        }
-
-        // GD.Print($"Build: {ID} + {resource} needed : {amountRequired}");
-
-        foreach (var sender in nodeInstances)
-        {
-            // This node is the target node
-            if (sender.Value == target) continue;
-            // This node has no credits
-            if (sender.Value.GetResource(resource) <= 0)
-            {
-                continue;
-            }
-
-            var path = pathfinding.GetIdPath((int)sender.Value.ID, (int)target.ID);
-            //No valid path
-            if (path.Length == 0)
-            {
-                continue;
-            }
-            // This node has an active build
-            if (ActiveBuilds.Any(a => a.NodeID == sender.Value.ID))
-            {
-                continue;
-            }
-
-            int val = Math.Min(buildCostTick, sender.Value.GetResource(resource));
-            val = Math.Min(val, (int)amountRequired);
-            if (val == 0) break;
-
-            amountRequired -= val;
-
-            TransferResource(resource, val, target, sender.Value);
-        }
-        return true;
+        return BuildQueues.ContainsKey(nodeID) && BuildQueues[nodeID].Count > 0;
     }
-
-
 
     #region Resources
 

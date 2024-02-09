@@ -4,6 +4,7 @@
 [ext_resource type="Texture2D" uid="uid://u85giaw7payn" path="res://Assets/art/blender/newtest.png" id="2_mds34"]
 
 [sub_resource type="StandardMaterial3D" id="StandardMaterial3D_f5wch"]
+resource_local_to_scene = true
 render_priority = 50
 transparency = 1
 shading_mode = 0

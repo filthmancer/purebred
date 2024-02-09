@@ -65,6 +65,8 @@ func move_to_point(delta, target_pos):
 	var dist = abs(position - target_pos);
 	if dist.length() > 0.2:
 		position += ((target_pos - position).normalized() * (delta * speed));
+		return true
 	else:
 		position = target_pos;
+		return false
 		

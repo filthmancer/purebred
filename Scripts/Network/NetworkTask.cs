@@ -63,7 +63,7 @@ public class ComponentBuildTask : NetworkTask
                 if (sender.Value.GetResource(cost.Key) <= 0) continue;
 
                 // This node has an active build
-                if (network.ActiveBuilds.Any(a => a.NodeID == sender.Value.ID)) continue;
+                if (network.NodeHasActiveBuild(sender.Value.ID)) continue;
 
                 var path = network.pathfinding.GetIdPath((int)sender.Value.ID, (int)target.ID);
                 //No valid path
@@ -145,7 +145,7 @@ public class RemoteTransferTask : NetworkTask
                 if (sender.Value.GetResource(cost.Key) <= 0) continue;
 
                 // This node has an active build
-                if (network.ActiveBuilds.Any(a => a.NodeID == sender.Value.ID)) continue;
+                if (network.NodeHasActiveBuild(sender.Value.ID)) continue;
 
                 var path = network.pathfinding.GetIdPath((int)sender.Value.ID, (int)target.ID);
                 //No valid path

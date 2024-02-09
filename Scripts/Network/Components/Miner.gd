@@ -37,4 +37,4 @@ func on_tick():
 	nodeInstance.GainResource("credits", active_mine_rate, self);
 	
 func get_heat():
-	return 10;
+	return 5;

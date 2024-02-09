@@ -26,6 +26,7 @@ public partial class ServerNode : InteractableArea3D, IDisposablePoolResource, I
     public int Heat = 0;
     [Export]
     public int HeatMax_initial = 20;
+    private float Heat_internal = 0;
     public int HeatMax;
     public int HeatMax_components = 0;
 
@@ -33,6 +34,7 @@ public partial class ServerNode : InteractableArea3D, IDisposablePoolResource, I
     public int Credits = 0;
     [Export]
     public int CreditsMax = 500;
+    private float Credits_internal = 0;
     private int CreditsMax_components = 0;
 
     [Export]
@@ -73,6 +75,9 @@ public partial class ServerNode : InteractableArea3D, IDisposablePoolResource, I
 
     public List<Node3D> creditObjects = new List<Node3D>();
 
+    private StandardMaterial3D cubeMat;
+    private static Color color_cool = new Color(1, 1, 1, 1);
+    private static Color color_hot = new Color(1, 0, 0, 1);
 
     public string Description()
     {
@@ -145,6 +150,8 @@ public partial class ServerNode : InteractableArea3D, IDisposablePoolResource, I
             Main.pool_serverNode.AddToPool(this);
         }
         AddToGroup("ServerNodes", true);
+        Credits_internal = Credits;
+        Heat_internal = Heat;
     }
     public override void _Process(double delta)
     {
@@ -175,7 +182,9 @@ public partial class ServerNode : InteractableArea3D, IDisposablePoolResource, I
 
     public void OnTick()
     {
-        Credits = Math.Clamp(Credits + (int)Credits_thisTick, 0, GetCreditsMax());
+        Credits_internal = Math.Clamp(Credits_internal + Credits_thisTick, 0, GetCreditsMax());
+        Credits = (int)Credits_internal;
+
         Data = Math.Clamp(Data + (int)Data_thisTick, 0, GetDataMax());
         UpdateHeat();
         Credits_thisTick = 0;
@@ -221,17 +230,24 @@ public partial class ServerNode : InteractableArea3D, IDisposablePoolResource, I
 
     }
 
-
     public void UpdateHeat()
     {
-        Heat_thisTick = -1.0F;
+        Heat_thisTick = -4.0F;
         HeatMax = HeatMax_initial;
         foreach (var comp in components)
         {
             Heat_thisTick += comp.Call("get_heat").As<float>();
             HeatMax += comp.Call("get_heatmax").As<int>();
         }
-        Heat = Math.Clamp(Heat + (int)Heat_thisTick, 0, HeatMax);
+        Heat_internal = Math.Clamp(Heat_internal + Heat_thisTick, 0, HeatMax);
+        Heat = (int)Heat_internal;
+
+        if (cubeMat == null)
+        {
+            var cubeObj = this.FindChild("node").FindChild("Cube") as MeshInstance3D;
+            cubeMat = (StandardMaterial3D)cubeObj.GetActiveMaterial(0);
+        }
+        cubeMat.AlbedoColor = color_cool.Lerp(color_hot, Heat_internal / HeatMax);
     }
 
     public int GetDataMax()
@@ -384,6 +400,7 @@ public partial class ServerNode : InteractableArea3D, IDisposablePoolResource, I
         {
             case "credits":
                 Credits += amount;
+                Credits_internal += amount;
                 break;
             case "data":
                 Data += amount;
@@ -397,6 +414,7 @@ public partial class ServerNode : InteractableArea3D, IDisposablePoolResource, I
         {
             case "credits":
                 Credits -= amount;
+                Credits_internal -= amount;
                 break;
             case "data":
                 Data -= amount;
@@ -414,11 +432,6 @@ public partial class ServerNode : InteractableArea3D, IDisposablePoolResource, I
                 return Data;
         }
         return -1;
-    }
-
-    public void GainHeat(int amount)
-    {
-        Heat = Mathf.Clamp(Heat + amount, 0, HeatMax);
     }
     #endregion
 }
