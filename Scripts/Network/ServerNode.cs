@@ -232,14 +232,25 @@ public partial class ServerNode : InteractableArea3D, IDisposablePoolResource, I
 
     public void UpdateHeat()
     {
-        Heat_thisTick = -4.0F;
+        var newHeat = 0;
+        //Heat_thisTick = 0.0F;
         HeatMax = HeatMax_initial;
         foreach (var comp in components)
         {
-            Heat_thisTick += comp.Call("get_heat").As<float>();
+            newHeat += comp.Call("get_heat").As<int>();
             HeatMax += comp.Call("get_heatmax").As<int>();
         }
-        Heat_internal = Math.Clamp(Heat_internal + Heat_thisTick, 0, HeatMax);
+
+        float difference = (float)newHeat - Heat_internal;
+        float sign = Math.Sign(difference);
+        float moveAmount = sign == 1 ? 1.0F : -1.0F;
+
+        if (Math.Abs(difference) > Math.Abs(moveAmount))
+        {
+            Heat_internal = Math.Clamp(Heat_internal + moveAmount, 0.0F, HeatMax);
+        }
+        else Heat_internal = Heat;
+
         Heat = (int)Heat_internal;
 
         if (cubeMat == null)
@@ -247,7 +258,7 @@ public partial class ServerNode : InteractableArea3D, IDisposablePoolResource, I
             var cubeObj = this.FindChild("node").FindChild("Cube") as MeshInstance3D;
             cubeMat = (StandardMaterial3D)cubeObj.GetActiveMaterial(0);
         }
-        cubeMat.AlbedoColor = color_cool.Lerp(color_hot, Heat_internal / HeatMax);
+        cubeMat.AlbedoColor = color_cool.Lerp(color_hot, Heat_internal / (float)HeatMax);
     }
 
     public int GetDataMax()

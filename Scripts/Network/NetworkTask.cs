@@ -84,7 +84,7 @@ public class ComponentBuildTask : NetworkTask
             // Start installing
             if (Install_Ticks > 0)
             {
-                GD.Print($"INSTALLING: {Install_Ticks}");
+                // GD.Print($"INSTALLING: {Install_Ticks}");
                 Install_Ticks--;
             }
             else
@@ -166,7 +166,7 @@ public class RemoteTransferTask : NetworkTask
             // Start installing
             if (Install_Ticks > 0)
             {
-                GD.Print($"INSTALLING: {Install_Ticks}");
+                //GD.Print($"INSTALLING: {Install_Ticks}");
                 Install_Ticks--;
             }
             else
