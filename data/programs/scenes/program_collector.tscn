@@ -1,0 +1,27 @@
+[gd_scene load_steps=6 format=3 uid="uid://cor43cf706x2d"]
+
+[ext_resource type="Script" path="res://Scripts/Actors/Actor.gd" id="1_bactr"]
+[ext_resource type="Texture2D" uid="uid://3p60n2n84iaj" path="res://Assets/icon.png" id="2_o77jn"]
+[ext_resource type="Script" path="res://Scripts/InteractableActor.cs" id="3_svl51"]
+[ext_resource type="Script" path="res://Scripts/Attributes/Collecting.gd" id="4_txgui"]
+
+[sub_resource type="BoxShape3D" id="BoxShape3D_fwf4n"]
+
+[node name="collector" type="Area3D" node_paths=PackedStringArray("attributes")]
+script = ExtResource("1_bactr")
+attributes = [NodePath("Collecting")]
+
+[node name="CollisionShape3D" type="CollisionShape3D" parent="."]
+shape = SubResource("BoxShape3D_fwf4n")
+disabled = true
+
+[node name="Sprite3D" type="Sprite3D" parent="."]
+transform = Transform3D(0.380407, 0.204223, 0.252158, -6.46342e-09, 0.388551, -0.314687, -0.324485, 0.239419, 0.295615, 0, 0.0891647, 0)
+render_priority = 100
+texture = ExtResource("2_o77jn")
+
+[node name="interactable" type="Area3D" parent="."]
+script = ExtResource("3_svl51")
+
+[node name="Collecting" type="Node3D" parent="."]
+script = ExtResource("4_txgui")

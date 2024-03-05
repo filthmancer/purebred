@@ -7,7 +7,11 @@ var path = []
 var lastpoint;
 var node_current;
 const ServerNode = preload("res://Scripts/Network/ServerNode.cs");
+@export var attributes: Array[Node3D];
 const LinkInstance = preload("res://Scripts/Network/LinkInstance.cs");
+var label;
+var rng;
+var state;
 
 var node_last;
 # Called when the node enters the scene tree for the first time.
@@ -21,7 +25,45 @@ func _ready():
 # Called every frame. 'delta' is the elapsed time since the previous frame.
 func _process(delta):
 	update_move(delta);
+	if label == null:
+		label = Label.new();
+		add_child(label);
+	else:
+		label.set("theme_override_font_sizes/font_size", 30)
+		label.position = get_viewport().get_camera_3d().unproject_position(self.position) + Vector2(-20,-100);
+		
 	pass
+	
+func on_tick():
+	if not node_current is ServerNode:
+		return;
+		
+	var next_state = "wander"
+	var strongest_motivator = null;
+	var strongest_motivator_weight = 0;
+	for attr in attributes:
+		var m = attr.get_motivation(node_current);
+		if label != null:
+			label.text = "%.2f" % m;
+		if m > strongest_motivator_weight:
+			strongest_motivator_weight = m;
+			strongest_motivator = attr;
+	
+	if rng.randf_range(0.0, 0.8) > strongest_motivator_weight:
+		strongest_motivator = null;
+
+	if strongest_motivator != null:
+		next_state = strongest_motivator.get_attribute_name();
+		strongest_motivator.get_action();
+
+	else: #wander
+		if path == null || path.size() == 0:
+			update_target()
+		
+	if node_current.HasComponent("cage"):
+		next_state = "trapped"
+		
+	state = next_state
 	
 func update_move(delta):
 	if path != null and path.size() > 0:
@@ -34,6 +76,12 @@ func initialise(_server, node_target):
 	server = _server;
 	node_current = node_target;
 	position = node_current.position;
+	rng = RandomNumberGenerator.new();
+	_server.main.connect("OnTick", on_tick)
+	lastpoint = node_target.position;
+	update_target();
+	for attr in attributes:
+		attr.initialise(self);
 
 
 func move_to_node(target= null, args = ["avoid_cages"]):
@@ -70,3 +118,35 @@ func move_to_point(delta, target_pos):
 		position = target_pos;
 		return false
 		
+func update_target():
+	var targets = server.GetAllNeighbours(node_current, 1);
+	var targetvalues = []
+		
+	var index = 0
+	var total = 0.0
+	for t in targets:
+		var m = 0
+		for attr in attributes:
+			m += attr.get_motivation(t);
+			
+		targetvalues.append(m)
+		
+		total += targetvalues[index]
+		index+=1
+	
+	var accrued = 0.0
+	index = 0
+	for t in targetvalues:
+		accrued += t
+		var rand = rng.randf()
+		if rand < (accrued /  total):
+			break;
+		index+=1
+	
+	if index == targets.size():
+		index = 0;
+		
+	move_to_node(targets[index], ["avoid_firewalls"]);
+	#path = server.GetPathFromTo(node_current.ID, targets[index].ID, ["avoid_firewalls"]);
+	
+	pass;

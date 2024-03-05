@@ -29,13 +29,13 @@ func generate_button_data():
 	for id in button_ids:
 		if button_data.has(id):
 			continue;
-		var script = load("res://Scripts/Network/Components/" + id + ".gd");
-		var res = load("res://data/components/" + id + ".tres");
+		#var script = load("res://Scripts/Network/Actors/" + id + ".gd");
+		var res = load("res://data/programs/program_" + id + ".tres");
 		button_data[id] = {
 			id = id,
 			cost= res.get("PurchaseCost_Credits"),
-			name= script.get("StaticName") if script.get("StaticName") != null else id,
-			description = script.get("StaticDescription"),
+			name= id,#script.get("StaticName") if script.get("StaticName") != null else id,
+			description = "XX"#script.get("StaticDescription"),
 		};
 		create_actionbutton(button_data[id], Callable(button_select).bind(id),res.get("icon"))
 

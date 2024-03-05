@@ -1,0 +1,17 @@
+[gd_resource type="Resource" load_steps=4 format=3 uid="uid://cgn5rgqe611c"]
+
+[ext_resource type="Texture2D" uid="uid://ky05qh63pynn" path="res://Assets/art/wenrexa/Elements/IconD10.png" id="1_q5pw4"]
+[ext_resource type="PackedScene" uid="uid://cor43cf706x2d" path="res://data/programs/scenes/program_collector.tscn" id="2_14tm7"]
+[ext_resource type="Script" path="res://Scripts/Data/RComponent.cs" id="3_5j6hs"]
+
+[resource]
+script = ExtResource("3_5j6hs")
+ID = "collector"
+packedScene = ExtResource("2_14tm7")
+Install_Ticks = 0
+Transfer_Ticks = 0
+icon = ExtResource("1_q5pw4")
+PurchaseCost_Credits = 10
+PurchaseCost_Data = 0
+InstallCost_Credits = 0
+InstallCost_Data = 0
